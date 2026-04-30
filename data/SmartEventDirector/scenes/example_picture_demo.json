@@ -1,0 +1,81 @@
+{
+  "schema": "SED_SCENE_1",
+  "sceneId": "example_picture_demo",
+  "title": "Picture and Camera Demo",
+  "canSkip": true,
+  "timeoutFrames": 3600,
+  "steps": [
+    {
+      "type": "lockPlayer"
+    },
+    {
+      "type": "fadeOut",
+      "duration": 20,
+      "wait": true
+    },
+    {
+      "type": "picture",
+      "action": "show",
+      "id": 1,
+      "name": "Picture1",
+      "origin": 0,
+      "x": 320,
+      "y": 240,
+      "scaleX": 100,
+      "scaleY": 100,
+      "opacity": 0,
+      "blendMode": 0
+    },
+    {
+      "type": "wait",
+      "frames": 10
+    },
+    {
+      "type": "picture",
+      "action": "move",
+      "id": 1,
+      "x": 320,
+      "y": 240,
+      "scaleX": 100,
+      "scaleY": 100,
+      "opacity": 255,
+      "duration": 30,
+      "wait": true
+    },
+    {
+      "type": "fadeIn",
+      "duration": 20,
+      "wait": true
+    },
+    {
+      "type": "dialogue",
+      "text": "Look at this picture!"
+    },
+    {
+      "type": "camera",
+      "action": "tint",
+      "tone": [128, 64, 64, 64],
+      "duration": 30,
+      "wait": true
+    },
+    {
+      "type": "dialogue",
+      "text": "The colors shift..."
+    },
+    {
+      "type": "camera",
+      "action": "tint",
+      "tone": [0, 0, 0, 0],
+      "duration": 30,
+      "wait": true
+    },
+    {
+      "type": "picture",
+      "action": "erase",
+      "id": 1
+    },
+    {
+      "type": "unlockPlayer"
+    }
+  ]
+}

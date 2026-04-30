@@ -1,0 +1,63 @@
+{
+  "schema": "SED_SCENE_1",
+  "sceneId": "test_condition_chain",
+  "title": "Test Condition Chain",
+  "canSkip": true,
+  "timeoutFrames": 600,
+  "steps": [
+    {
+      "type": "condition",
+      "operator": "scenePlayed",
+      "sceneId": "test_choice",
+      "jumpTrue": "played_choice",
+      "jumpFalse": "check_gold"
+    },
+    {
+      "type": "label",
+      "name": "check_gold"
+    },
+    {
+      "type": "condition",
+      "operator": "goldGte",
+      "value": 100,
+      "jumpTrue": "rich",
+      "jumpFalse": "poor"
+    },
+    {
+      "type": "label",
+      "name": "rich"
+    },
+    {
+      "type": "dialogue",
+      "text": "You have at least 100 gold!"
+    },
+    {
+      "type": "jump",
+      "label": "end"
+    },
+    {
+      "type": "label",
+      "name": "poor"
+    },
+    {
+      "type": "dialogue",
+      "text": "You have less than 100 gold."
+    },
+    {
+      "type": "jump",
+      "label": "end"
+    },
+    {
+      "type": "label",
+      "name": "played_choice"
+    },
+    {
+      "type": "dialogue",
+      "text": "You already played the choice test scene!"
+    },
+    {
+      "type": "label",
+      "name": "end"
+    }
+  ]
+}

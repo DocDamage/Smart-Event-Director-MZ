@@ -1,0 +1,14 @@
+{
+  "schema": "SED_SCENE_1",
+  "sceneId": "test_bad_move",
+  "title": "Test Bad Move",
+  "steps": [
+    {
+      "type": "moveTo",
+      "eventId": 999,
+      "x": 10,
+      "y": 10,
+      "timeoutFrames": 60
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "schema": "SED_SCENE_1",
+  "sceneId": "example_intro",
+  "title": "Example Intro",
+  "canSkip": true,
+  "timeoutFrames": 3600,
+  "steps": [
+    {
+      "type": "lockPlayer"
+    },
+    {
+      "type": "fadeOut",
+      "duration": 30,
+      "wait": true
+    },
+    {
+      "type": "wait",
+      "frames": 15
+    },
+    {
+      "type": "fadeIn",
+      "duration": 30,
+      "wait": true
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Mira",
+      "text": "Something is wrong with this place."
+    },
+    {
+      "type": "choice",
+      "key": "mira_intro_response",
+      "prompt": "How do you respond?",
+      "options": [
+        {
+          "text": "I feel it too.",
+          "jump": "trust"
+        },
+        {
+          "text": "You're imagining things.",
+          "jump": "doubt"
+        }
+      ],
+      "cancel": "none"
+    },
+    {
+      "type": "label",
+      "name": "trust"
+    },
+    {
+      "type": "switch",
+      "id": 21,
+      "value": true
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Mira",
+      "text": "Then you understand."
+    },
+    {
+      "type": "jump",
+      "label": "end"
+    },
+    {
+      "type": "label",
+      "name": "doubt"
+    },
+    {
+      "type": "variable",
+      "id": 12,
+      "operation": "add",
+      "value": 1
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Mira",
+      "text": "I wish I was."
+    },
+    {
+      "type": "label",
+      "name": "end"
+    },
+    {
+      "type": "unlockPlayer"
+    }
+  ]
+}

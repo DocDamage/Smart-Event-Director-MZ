@@ -1,0 +1,12 @@
+{
+  "schema": "SED_SCENE_1",
+  "sceneId": "test_dialogue",
+  "title": "Test Dialogue",
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "Mira",
+      "text": "This is a test."
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "schema": "SED_SCENE_1",
+  "sceneId": "test_common_event",
+  "title": "Test Common Event",
+  "canSkip": false,
+  "timeoutFrames": 1200,
+  "steps": [
+    {
+      "type": "lockPlayer"
+    },
+    {
+      "type": "dialogue",
+      "text": "Running common event..."
+    },
+    {
+      "type": "commonEvent",
+      "id": 1,
+      "wait": true
+    },
+    {
+      "type": "dialogue",
+      "text": "Common event finished!"
+    },
+    {
+      "type": "unlockPlayer"
+    }
+  ]
+}

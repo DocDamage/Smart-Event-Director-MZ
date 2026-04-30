@@ -1,0 +1,15 @@
+{
+  "schema": "SED_INDEX_1",
+  "scenes": [
+    "example_intro.json",
+    "example_choice.json",
+    "example_cinematic.json",
+    "example_picture_demo.json",
+    "test_dialogue.json",
+    "test_lock.json",
+    "test_choice.json",
+    "test_bad_move.json",
+    "test_common_event.json",
+    "test_condition_chain.json"
+  ]
+}

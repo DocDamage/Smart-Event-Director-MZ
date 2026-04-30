@@ -1,0 +1,17 @@
+{
+  "schema": "SED_SCENE_1",
+  "sceneId": "test_lock",
+  "title": "Test Lock",
+  "steps": [
+    {
+      "type": "lockPlayer"
+    },
+    {
+      "type": "wait",
+      "frames": 120
+    },
+    {
+      "type": "unlockPlayer"
+    }
+  ]
+}

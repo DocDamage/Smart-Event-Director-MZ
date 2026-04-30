@@ -1,0 +1,96 @@
+{
+  "schema": "SED_SCENE_1",
+  "sceneId": "example_cinematic",
+  "title": "Cinematic Scene Demo",
+  "canSkip": true,
+  "timeoutFrames": 3600,
+  "steps": [
+    {
+      "type": "lockPlayer"
+    },
+    {
+      "type": "audio",
+      "action": "bgm",
+      "name": "Theme1",
+      "volume": 90,
+      "pitch": 100
+    },
+    {
+      "type": "camera",
+      "action": "shake",
+      "power": 5,
+      "speed": 5,
+      "duration": 30,
+      "wait": true
+    },
+    {
+      "type": "camera",
+      "action": "flash",
+      "color": [255, 255, 255, 128],
+      "duration": 15,
+      "wait": true
+    },
+    {
+      "type": "dialogue",
+      "speaker": "??",
+      "text": "The ground trembles..."
+    },
+    {
+      "type": "condition",
+      "operator": "switchIs",
+      "switchId": 1,
+      "value": true,
+      "jumpTrue": "already_done",
+      "jumpFalse": "new_path"
+    },
+    {
+      "type": "label",
+      "name": "new_path"
+    },
+    {
+      "type": "switch",
+      "id": 1,
+      "value": true
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Mira",
+      "text": "That was intense!"
+    },
+    {
+      "type": "selfSwitch",
+      "eventId": 1,
+      "letter": "A",
+      "value": true
+    },
+    {
+      "type": "audio",
+      "action": "se",
+      "name": "Applause",
+      "volume": 80
+    },
+    {
+      "type": "jump",
+      "label": "end"
+    },
+    {
+      "type": "label",
+      "name": "already_done"
+    },
+    {
+      "type": "dialogue",
+      "text": "You've already seen this."
+    },
+    {
+      "type": "label",
+      "name": "end"
+    },
+    {
+      "type": "unlockPlayer"
+    },
+    {
+      "type": "audio",
+      "action": "stopBgm"
+    }
+  ]
+}

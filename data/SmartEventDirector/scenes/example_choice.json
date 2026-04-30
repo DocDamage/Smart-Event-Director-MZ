@@ -1,0 +1,49 @@
+{
+  "schema": "SED_SCENE_1",
+  "sceneId": "example_choice",
+  "title": "Example Choice",
+  "steps": [
+    {
+      "type": "choice",
+      "key": "example_choice_key",
+      "prompt": "Where should we go?",
+      "options": [
+        {
+          "text": "The forest.",
+          "jump": "forest"
+        },
+        {
+          "text": "The village.",
+          "jump": "village"
+        }
+      ],
+      "cancel": "none"
+    },
+    {
+      "type": "label",
+      "name": "forest"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Guide",
+      "text": "The forest path is dangerous."
+    },
+    {
+      "type": "jump",
+      "label": "end"
+    },
+    {
+      "type": "label",
+      "name": "village"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Guide",
+      "text": "The village is that way."
+    },
+    {
+      "type": "label",
+      "name": "end"
+    }
+  ]
+}

@@ -27,6 +27,11 @@ Complete reference for all SED scene step types. Every step is a JSON object wit
   - [`condition`](#condition)
   - [`script`](#script)
   - [`comment`](#comment)
+- [Scene Control](#scene-control)
+  - [`callScene`](#callscene)
+  - [`return`](#return)
+  - [`checkpoint`](#checkpoint)
+  - [`preload`](#preload)
 - [Audio / Visual](#audio--visual)
   - [`fadeOut`](#fadeout)
   - [`fadeIn`](#fadein)
@@ -47,6 +52,20 @@ Complete reference for all SED scene step types. Every step is a JSON object wit
 - [System](#system)
   - [`commonEvent`](#commonevent)
   - [`selfSwitch`](#selfswitch)
+
+---
+
+## Text Interpolation
+
+All string fields in steps are automatically interpolated at runtime:
+
+| Code | Meaning | Example |
+|---|---|---|
+| `\\v[n]` | Game variable value | `"You have \\v[1] gold."` |
+| `\\n[n]` | Actor name from database | `"\\n[1] joined the party!"` |
+| `\\p[n]` | Party member name | `"\\p[1] is injured."` |
+| `\\t[key]` | Locale string lookup | `"\\t[dialogue.greeting]"` |
+
 
 ---
 
@@ -126,8 +145,14 @@ Presents a multiple-choice prompt and optionally branches to a label based on th
 | `options` | array | yes | — |
 | `options[].text` | string | yes | — |
 | `options[].jump` | string | no | — |
+| `options[].condition` | object | no | — |
+| `conditionMode` | string | no | `"hidden"` |
 | `defaultIndex` | number | no | `0` |
 | `cancel` | string\|number | no | `"none"` |
+| `timeout` | number | no | — |
+| `timeoutBehavior` | string | no | `"default"` |
+| `timeoutDefaultIndex` | number | no | `0` |
+| `timeoutJump` | string | no | — |
 
 **Example**
 
@@ -138,9 +163,29 @@ Presents a multiple-choice prompt and optionally branches to a label based on th
   "prompt": "How do you respond?",
   "options": [
     { "text": "I feel it too.", "jump": "trust" },
-    { "text": "You're imagining things.", "jump": "doubt" }
+    {
+      "text": "(Intimidate) Back off.",
+      "jump": "intimidate",
+      "condition": { "operator": "variableGte", "variableId": 5, "value": 10 }
+    }
   ],
   "cancel": "none"
+}
+```
+
+**Timed Choice Example**
+
+```json
+{
+  "type": "choice",
+  "prompt": "Quick! Choose!",
+  "timeout": 180,
+  "timeoutBehavior": "jump",
+  "timeoutJump": "tooSlow",
+  "options": [
+    { "text": "Run!", "jump": "run" },
+    { "text": "Fight!", "jump": "fight" }
+  ]
 }
 ```
 
@@ -149,6 +194,8 @@ Presents a multiple-choice prompt and optionally branches to a label based on th
 - `cancel` can be `"none"`, `"branch"`, or a zero-based option index.
 - If `key` is provided, the chosen index and text are persisted in `SED.Save` and survive save/load.
 - Each option `jump` target must match a `label` name in the same scene.
+- **Conditional options**: Each option can have a `condition` object (same format as the `condition` step). If the condition fails, the option is hidden by default. Set `conditionMode: "disabled"` to grey it out instead of hiding it.
+- **Timed choices**: Set `timeout` to the number of frames. `timeoutBehavior` can be `"default"` (auto-select default), `"jump"` (jump to `timeoutJump` label), or `"cancel"` (treat as cancelled).
 
 ---
 
@@ -1112,3 +1159,120 @@ Sets a self-switch for a specific map event.
 **Notes**
 - `letter` must be exactly one character (`A`, `B`, `C`, or `D`).
 - The switch is stored per-map, per-event, per-letter in `$gameSelfSwitches`.
+
+---
+
+## Scene Control
+
+### `callScene`
+
+Calls another scene as a sub-scene. When the sub-scene completes (or hits a `return` step), execution resumes at the `returnLabel` in the current scene.
+
+**Schema**
+
+| Field | Type | Required | Default |
+|---|---|---|---|
+| `type` | string | yes | `"callScene"` |
+| `sceneId` | string | yes | — |
+| `returnLabel` | string | no | — |
+
+**Example**
+
+```json
+{
+  "type": "callScene",
+  "sceneId": "shop_greeting",
+  "returnLabel": "afterShop"
+}
+```
+
+**Notes**
+- The sub-scene runs with its own `StepQueue` and `StepContext`.
+- When the sub-scene ends (naturally or via `return`), the runner pops the call stack and resumes the parent scene.
+- `stop()` and failsafe recovery clear the entire call stack.
+- Save/load preserves the call stack depth and resumes correctly.
+
+---
+
+### `return`
+
+Forces an early return from a sub-scene back to its caller. If no call stack exists, this step does nothing and the scene continues.
+
+**Schema**
+
+| Field | Type | Required | Default |
+|---|---|---|---|
+| `type` | string | yes | `"return"` |
+
+**Example**
+
+```json
+{
+  "type": "return"
+}
+```
+
+**Notes**
+- Typically used inside sub-scenes that are called via `callScene`.
+- Equivalent to completing the scene early.
+
+---
+
+### `checkpoint`
+
+Saves a checkpoint of the current scene state. The player can later retry from this checkpoint via the `RetryCheckpoint` or `RetryCheckpointId` plugin commands.
+
+**Schema**
+
+| Field | Type | Required | Default |
+|---|---|---|---|
+| `type` | string | yes | `"checkpoint"` |
+| `id` | string | no | auto-generated |
+
+**Example**
+
+```json
+{
+  "type": "checkpoint",
+  "id": "pre_boss"
+}
+```
+
+**Notes**
+- Checkpoints capture: scene ID, queue index, context locals, configured switches/variables, SED choices, and flags.
+- Up to 10 checkpoints are kept in a ring buffer; older ones are discarded.
+- Configure which switches and variables to snapshot via plugin parameters: `Checkpoint Switch IDs` and `Checkpoint Variable IDs` (comma-separated).
+
+---
+
+### `preload`
+
+Preloads images and audio assets before they are needed, preventing frame hitches during scenes.
+
+**Schema**
+
+| Field | Type | Required | Default |
+|---|---|---|---|
+| `type` | string | yes | `"preload"` |
+| `images` | string[] | no | — |
+| `audio` | object[] | no | — |
+| `audio[].name` | string | yes | — |
+| `audio[].type` | string | yes | `"bgm"` |
+
+**Example**
+
+```json
+{
+  "type": "preload",
+  "images": ["img/pictures/boss_bust.png"],
+  "audio": [
+    { "name": "boss_theme", "type": "bgm" },
+    { "name": "roar", "type": "se" }
+  ]
+}
+```
+
+**Notes**
+- The step waits until all listed assets report loaded before finishing.
+- Image paths should be relative to the project root (e.g., `img/pictures/name.png`).
+- Audio `type` can be `"bgm"`, `"bgs"`, `"me"`, or `"se"`.

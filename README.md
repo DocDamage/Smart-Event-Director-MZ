@@ -1,6 +1,6 @@
 # Smart Event Director MZ
 
-[![Version](https://img.shields.io/badge/version-v0.4-blue)](https://github.com/yourusername/SmartEventDirectorMZ)
+[![Version](https://img.shields.io/badge/version-v1.1-blue)](https://github.com/yourusername/SmartEventDirectorMZ)
 [![RPG Maker MZ](https://img.shields.io/badge/RPG%20Maker-MZ-green)](https://www.rpgmakerweb.com/products/rpg-maker-mz)
 [![License](https://img.shields.io/badge/license-MIT-yellow)](LICENSE)
 
@@ -18,12 +18,20 @@ The core idea:
 
 - **Modular frame-based scene runner** — Scenes execute step-by-step on every frame with a clean registry pattern
 - **JSON-driven scene definitions** — Write scenes in plain JSON; no JavaScript knowledge required
-- **25+ step types** — dialogue, narration, choice, movement, camera, audio, pictures, weather, transitions, and more
+- **34+ step types** — dialogue, narration, choice, movement, camera, audio, pictures, weather, transitions, sub-scenes, checkpoints, preloading, and more
 - **Quest system** — Define quests with objectives, track progress, grant rewards, and show toast notifications
 - **Relationship system** — Point-based relationship tracking for named characters with a built-in viewer
 - **Choice memory and scene history** — Remember player choices across saves; conditionally branch based on past decisions
 - **Save/load support** — Quest state, relationship points, choice memory, and scene history persist with regular saves; mid-scene resume is supported
 - **Cross-map scene support** — Scenes can span multiple maps without breaking
+- **Conditional choices** — Hide or disable individual options based on game state
+- **Timed choices** — Choices with countdown timers and configurable timeout behavior
+- **Sub-scenes / scene calls** — Call reusable scene subroutines with automatic return
+- **Checkpoint / retry system** — Save mid-scene checkpoints and retry from them
+- **Localization** — String table support with `\t[key]` interpolation
+- **Asset preloading** — Preload images and audio to prevent frame hitches
+- **Battle scene support** — Run cutscenes during combat
+- **Dialogue history with state snapshots** — Review past dialogue with world state context
 - **Debug overlay and hot-reload** — Visual HUD shows scene/step/state/lock/timeout; reload data without restarting the game (dev mode)
 - **Dialogue log** — Scrollable text history of all dialogue and narration, accessible with a keybind
 - **Text effects** — Per-message typing speed control and auto-advance
@@ -99,7 +107,7 @@ Enable **Wait for Completion** so the event waits until the scene finishes.
 
 ```
 data/SmartEventDirector/
-  index.json                 # Master index listing all scenes and quests
+  index.json                 # Master index listing all scenes, quests, and locales
   scenes/
     my_first_scene.json      # Scene definition files
     example_intro.json
@@ -107,6 +115,10 @@ data/SmartEventDirector/
   quests/
     my_first_quest.json      # Quest definition files
     example_tutorial_quest.json
+    ...
+  lang/
+    en.json                  # Locale string tables
+    es.json
     ...
 
 js/plugins/
@@ -122,6 +134,9 @@ js/plugins/
       SED_SceneRegistry.js             # Scene storage
       SED_SceneValidator.js            # Scene validation
       SED_QuestRegistry.js             # Quest data definitions
+    core/
+      SED_Locale.js                    # Localization string tables
+      SED_ModuleLoader.js              # On-demand module loading utilities
     runtime/
       SED_StepRegistry.js              # Handler registration
       SED_StepQueue.js                 # Step iteration, labels, jumps
@@ -141,6 +156,10 @@ js/plugins/
       SED_TextEffects.js               # Typing speed & auto-advance
       SED_Cleanup.js                   # Audio/picture snapshot & restore
       SED_HotReload.js                 # Data hot-reload (dev)
+      SED_AssetLoader.js               # Image/audio preloading
+      SED_Checkpoint.js                # Checkpoint save/restore
+      SED_History.js                   # Dialogue history with state snapshots
+      SED_BattleIntegration.js         # Battle scene hooks
       SED_InputBuffer.js               # Choose-ahead input buffering
       SED_PluginCommands.js            # All plugin commands
     steps/
@@ -167,6 +186,10 @@ js/plugins/
       SED_Step_Script.js
       SED_Step_Comment.js
       SED_Step_MoveRoute.js
+      SED_Step_CallScene.js
+      SED_Step_Return.js
+      SED_Step_Preload.js
+      SED_Step_Checkpoint.js
 ```
 
 All module files stay under the 450-line warning threshold and 525-line hard limit.
@@ -177,9 +200,9 @@ All module files stay under the 450-line warning threshold and 525-line hard lim
 
 | Step Type | Description |
 |-----------|-------------|
-| `dialogue` | Display a message with optional speaker, face, and text effects (`\v[1]`, `\p[1]` interpolation supported) |
+| `dialogue` | Display a message with optional speaker, face, and text effects (`\v[n]`, `\n[n]`, `\p[n]`, `\t[key]` interpolation) |
 | `narration` | Display a message without a speaker name |
-| `choice` | Show a branching choice menu; options can jump to labels and store results in memory |
+| `choice` | Show a branching choice menu; options can be conditional, timed, and store results in memory |
 | `wait` | Pause scene execution for a number of frames |
 | `switch` | Set an RPG Maker game switch ON or OFF |
 | `variable` | Set or modify an RPG Maker game variable |
@@ -210,6 +233,10 @@ All module files stay under the 450-line warning threshold and 525-line hard lim
 | `failQuest` | Fail a quest |
 | `questReward` | Grant gold, items, weapons, armor, and EXP as quest rewards |
 | `relationship` | Add or set relationship points for a character |
+| `callScene` | Call another scene as a subroutine; returns to caller on completion |
+| `return` | Early return from a sub-scene |
+| `checkpoint` | Save a retry checkpoint mid-scene |
+| `preload` | Preload images and audio assets |
 
 ---
 
@@ -263,6 +290,8 @@ Add it to `data/SmartEventDirector/index.json` under the `"quests"` array.
 | `SkipScene` | — | Skip the current scene (respects `canSkip: false`) |
 | `RecoverScene` | — | Force failsafe recovery (unlock player, fade in, idle) |
 | `ToggleDebug` | — | Toggle the debug overlay HUD |
+| `RetryCheckpoint` | — | Retry from the most recent checkpoint |
+| `RetryCheckpointId` | `id` | Retry from a specific checkpoint by ID |
 
 ### Quest Commands
 
@@ -287,6 +316,13 @@ Add it to `data/SmartEventDirector/index.json` under the `"quests"` array.
 | Command | Arguments | Description |
 |---------|-----------|-------------|
 | `ReloadData` | — | Hot-reload all scene and quest JSON data (requires **Hot Reload** enabled) |
+
+### Checkpoint Commands
+
+| Command | Arguments | Description |
+|---------|-----------|-------------|
+| `RetryCheckpoint` | — | Retry from the most recent checkpoint |
+| `RetryCheckpointId` | `id` | Retry from a specific checkpoint by ID |
 
 ### Menu Integration
 
@@ -317,6 +353,11 @@ When enabled in plugin parameters:
 | Quest Toast Sound | string | *(empty)* | Sound effect for quest toasts |
 | Dialogue Log Key Name | string | `pageup` | Keybind to open the dialogue log |
 | Enable Hot Reload | boolean | `false` | Allow data reload without game restart |
+| Locale | string | `en` | Active locale for string tables |
+| Checkpoint Switch IDs | string | *(empty)* | Comma-separated switch IDs to snapshot at checkpoints |
+| Checkpoint Variable IDs | string | *(empty)* | Comma-separated variable IDs to snapshot at checkpoints |
+| History Switch IDs | string | *(empty)* | Comma-separated switch IDs to track in dialogue history |
+| History Variable IDs | string | *(empty)* | Comma-separated variable IDs to track in dialogue history |
 
 ---
 

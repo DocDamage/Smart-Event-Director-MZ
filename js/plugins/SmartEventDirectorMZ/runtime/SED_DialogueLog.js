@@ -25,6 +25,11 @@
     if (_window) {
       _window.refresh();
     }
+
+    // v1.1: Also push to History for state snapshots
+    if (SED.History && SED.History.addEntry) {
+      SED.History.addEntry(data);
+    }
   }
 
   function clear() {
@@ -195,5 +200,5 @@
     update
   };
 
-  SED.registerModule("DialogueLog", "0.4.0");
+  SED.registerModule("DialogueLog", "1.1.0");
 })();

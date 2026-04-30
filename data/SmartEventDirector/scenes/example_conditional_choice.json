@@ -1,0 +1,32 @@
+{
+  "schema": "SED_SCENE_1",
+  "sceneId": "example_conditional_choice",
+  "title": "Conditional Choice Demo",
+  "canSkip": true,
+  "steps": [
+    { "type": "dialogue", "speaker": "Merchant", "text": "Greetings, traveler." },
+    { "type": "dialogue", "speaker": "Merchant", "text": "I have wares, if you have coin." },
+    {
+      "type": "choice",
+      "prompt": "What do you say?",
+      "options": [
+        { "text": "Show me your goods.", "jump": "shop" },
+        {
+          "text": "I heard you sell rare items.",
+          "condition": { "operator": "switchIs", "switchId": 1, "value": true },
+          "jump": "rare"
+        },
+        { "text": "Goodbye.", "jump": "end" }
+      ],
+      "cancel": "none"
+    },
+    { "type": "label", "name": "shop" },
+    { "type": "dialogue", "speaker": "Merchant", "text": "Here are my standard wares." },
+    { "type": "jump", "label": "end" },
+    { "type": "label", "name": "rare" },
+    { "type": "dialogue", "speaker": "Merchant", "text": "Ah, you know about those? Come, see in the back." },
+    { "type": "jump", "label": "end" },
+    { "type": "label", "name": "end" },
+    { "type": "dialogue", "speaker": "Merchant", "text": "Safe travels." }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "schema": "SED_SCENE_1",
+  "sceneId": "example_checkpoint",
+  "title": "Checkpoint Demo",
+  "canSkip": true,
+  "steps": [
+    { "type": "dialogue", "speaker": "Narrator", "text": "You stand before the dragon's lair." },
+    { "type": "checkpoint", "id": "pre_boss" },
+    { "type": "dialogue", "speaker": "Dragon", "text": "ROAR!" },
+    { "type": "dialogue", "speaker": "Hero", "text": "Here goes nothing..." },
+    { "type": "dialogue", "speaker": "Narrator", "text": "(Use RetryCheckpoint plugin command to retry from the checkpoint.)" }
+  ]
+}

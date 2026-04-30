@@ -47,6 +47,10 @@ KNOWN_STEP_TYPES = frozenset(
         "relationship",
         "transition",
         "weather",
+        "callScene",
+        "return",
+        "preload",
+        "checkpoint",
     ]
 )
 

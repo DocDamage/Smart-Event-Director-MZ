@@ -9,8 +9,8 @@
     validate(step) {
       const errors = [];
 
-      if (!step.text) {
-        errors.push(step.type + " step missing text.");
+      if (!step.text && !step.textKey) {
+        errors.push(step.type + " step missing text or textKey.");
       }
 
       if (step.textSpeed !== undefined && (!Number.isFinite(step.textSpeed) || step.textSpeed < 0)) {
@@ -40,23 +40,20 @@
           return false;
         }
 
-        const speaker = step.speaker ? SED.Util.interpolateText(step.speaker) : null;
-        const text = SED.Util.interpolateText(step.text);
-
         if (step.faceName) {
           $gameMessage.setFaceImage(String(step.faceName), Number(step.faceIndex || 0));
         }
 
-        if (speaker && $gameMessage.setSpeakerName) {
-          $gameMessage.setSpeakerName(speaker);
+        if (step.speaker && $gameMessage.setSpeakerName) {
+          $gameMessage.setSpeakerName(String(step.speaker));
         }
 
-        $gameMessage.add(text);
+        $gameMessage.add(String(step.text || ""));
 
         if (SED.DialogueLog && SED.DialogueLog.addEntry) {
           SED.DialogueLog.addEntry({
-            speaker: speaker,
-            text: text,
+            speaker: step.speaker || null,
+            text: step.text || "",
             faceName: step.faceName || null,
             faceIndex: Number(step.faceIndex || 0)
           });
@@ -78,5 +75,5 @@
     }
   });
 
-  SED.registerModule("Step_Dialogue", "0.4.0");
+  SED.registerModule("Step_Dialogue", "1.1.0");
 })();

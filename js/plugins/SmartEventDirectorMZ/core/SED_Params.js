@@ -28,7 +28,7 @@
 
     // v0.2 params
     enableSceneSkip: bool("Enable Scene Skip", true),
-    sceneSkipKey: number("Scene Skip Key", 27),       // 27 = Escape keyCode
+    sceneSkipKey: number("Scene Skip Key", 27),
     enableDebugOverlay: bool("Enable Debug Overlay", false),
     allowSceneQueue: bool("Allow Scene Queue", false),
     defaultSkipPrevention: bool("Default Can Skip", true),
@@ -48,7 +48,16 @@
     dialogueLogKeyName: text("Dialogue Log Key Name", "pageup"),
 
     // v0.4: Developer tooling
-    hotReload: bool("Enable Hot Reload", false)
+    hotReload: bool("Enable Hot Reload", false),
+
+    // v1.1: Localization
+    locale: text("Locale", "en"),
+
+    // v1.1: Checkpoint / History snapshot IDs (comma-separated)
+    checkpointSwitchIds: SED.Util && SED.Util.parseIdList ? SED.Util.parseIdList(text("Checkpoint Switch IDs", "")) : [],
+    checkpointVariableIds: SED.Util && SED.Util.parseIdList ? SED.Util.parseIdList(text("Checkpoint Variable IDs", "")) : [],
+    historySwitchIds: SED.Util && SED.Util.parseIdList ? SED.Util.parseIdList(text("History Switch IDs", "")) : [],
+    historyVariableIds: SED.Util && SED.Util.parseIdList ? SED.Util.parseIdList(text("History Variable IDs", "")) : []
   };
 
   function validate() {
@@ -72,5 +81,5 @@
   SED.Params.validate = validate;
   SED.Params._raw = raw;
 
-  SED.registerModule("Params", "0.4.0");
+  SED.registerModule("Params", "1.1.0");
 })();

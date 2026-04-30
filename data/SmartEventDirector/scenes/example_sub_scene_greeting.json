@@ -1,0 +1,11 @@
+{
+  "schema": "SED_SCENE_1",
+  "sceneId": "example_sub_scene_greeting",
+  "title": "Tavern Greeting",
+  "canSkip": true,
+  "steps": [
+    { "type": "dialogue", "speaker": "Innkeeper", "text": "Welcome to the Rusty Tankard!" },
+    { "type": "dialogue", "speaker": "Innkeeper", "text": "Rooms are 10 gold a night." },
+    { "type": "return" }
+  ]
+}

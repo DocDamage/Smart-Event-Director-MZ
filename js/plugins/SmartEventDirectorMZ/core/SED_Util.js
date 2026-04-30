@@ -63,7 +63,93 @@
         const actor = $gameParty.members()[Number(n) - 1];
         return actor ? actor.name() : "";
       })
+      .replace(/\\t\[([^\]]+)\]/g, function(match, key) {
+        return SED.Locale && SED.Locale.get ? SED.Locale.get(key, key) : key;
+      })
       .replace(/\\\\/g, "\\");
+  }
+
+  function interpolateDeep(value) {
+    if (typeof value === "string") {
+      return interpolateText(value);
+    }
+    if (Array.isArray(value)) {
+      return value.map(interpolateDeep);
+    }
+    if (value !== null && typeof value === "object") {
+      const result = {};
+      for (const key in value) {
+        if (Object.prototype.hasOwnProperty.call(value, key)) {
+          result[key] = interpolateDeep(value[key]);
+        }
+      }
+      return result;
+    }
+    return value;
+  }
+
+  function parseIdList(value) {
+    if (!value) return [];
+    if (Array.isArray(value)) return value.map(Number).filter(Number.isFinite);
+    return String(value).split(",").map(s => Number(s.trim())).filter(Number.isFinite);
+  }
+
+  function evaluateCondition(condition) {
+    if (!condition || !condition.operator) return false;
+    const op = String(condition.operator);
+
+    if (op === "switchIs") {
+      return $gameSwitches.value(Number(condition.switchId)) === (condition.value !== false);
+    }
+    if (op === "variableIs") {
+      return Number($gameVariables.value(Number(condition.variableId))) === Number(condition.value);
+    }
+    if (op === "variableGte") {
+      return Number($gameVariables.value(Number(condition.variableId))) >= Number(condition.value);
+    }
+    if (op === "variableLte") {
+      return Number($gameVariables.value(Number(condition.variableId))) <= Number(condition.value);
+    }
+    if (op === "choiceIs") {
+      const choice = SED.Save.getChoice(String(condition.choiceKey || ""));
+      return choice && Number(choice.index) === Number(condition.choiceIndex);
+    }
+    if (op === "scenePlayed") {
+      return !!SED.Save.getPlayed(String(condition.sceneId || ""));
+    }
+    if (op === "sceneCompleted") {
+      return !!SED.Save.getCompleted(String(condition.sceneId || ""));
+    }
+    if (op === "hasItem") {
+      return $gameParty.hasItem($dataItems[Number(condition.itemId || 0)]);
+    }
+    if (op === "goldGte") {
+      return $gameParty.gold() >= Number(condition.value || 0);
+    }
+    if (op === "questActive") {
+      return SED.QuestState && SED.QuestState.isActive(String(condition.questId || ""));
+    }
+    if (op === "questCompleted") {
+      return SED.QuestState && SED.QuestState.isCompleted(String(condition.questId || ""));
+    }
+    if (op === "questFailed") {
+      return SED.QuestState && SED.QuestState.isFailed(String(condition.questId || ""));
+    }
+    if (op === "questObjectiveDone") {
+      const qs = SED.QuestState && SED.QuestState._getRawState ? SED.QuestState._getRawState(String(condition.questId || "")) : null;
+      return !!(qs && qs.objectives[String(condition.objective || "")]);
+    }
+    if (op === "relationshipGte") {
+      return SED.RelationshipState && SED.RelationshipState.getPoints(String(condition.target || "")) >= Number(condition.value || 0);
+    }
+    if (op === "relationshipLte") {
+      return SED.RelationshipState && SED.RelationshipState.getPoints(String(condition.target || "")) <= Number(condition.value || 0);
+    }
+    if (op === "relationshipIs") {
+      return SED.RelationshipState && SED.RelationshipState.getPoints(String(condition.target || "")) === Number(condition.value || 0);
+    }
+
+    return false;
   }
 
   SED.Util = {
@@ -72,8 +158,11 @@
     characterFromId,
     directionFromText,
     cloneJson,
-    interpolateText
+    interpolateText,
+    interpolateDeep,
+    parseIdList,
+    evaluateCondition
   };
 
-  SED.registerModule("Util", "0.4.0");
+  SED.registerModule("Util", "1.1.0");
 })();

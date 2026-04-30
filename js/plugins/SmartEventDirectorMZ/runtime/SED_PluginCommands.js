@@ -45,6 +45,20 @@
     if (SED.DebugOverlay) SED.DebugOverlay.toggle();
   });
 
+  // Checkpoint commands
+  PluginManager.registerCommand(PLUGIN_NAME, "RetryCheckpoint", function() {
+    if (SED.Checkpoint && SED.Checkpoint.restore) {
+      SED.Checkpoint.restore();
+    }
+  });
+
+  PluginManager.registerCommand(PLUGIN_NAME, "RetryCheckpointId", function(args) {
+    const id = String(args.id || "");
+    if (id && SED.Checkpoint && SED.Checkpoint.restore) {
+      SED.Checkpoint.restore(id);
+    }
+  });
+
   // Relationship commands
   PluginManager.registerCommand(PLUGIN_NAME, "SetRelationship", function(args) {
     const target = String(args.target || "");
@@ -139,5 +153,5 @@
     }
   };
 
-  SED.registerModule("PluginCommands", "0.4.0");
+  SED.registerModule("PluginCommands", "1.1.0");
 })();

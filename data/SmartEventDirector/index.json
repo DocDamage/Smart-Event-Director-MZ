@@ -14,10 +14,19 @@
     "example_quest_scene.json",
     "example_relationship_scene.json",
     "example_v04_features.json",
-    "example_complete_demo.json"
+    "example_complete_demo.json",
+    "example_conditional_choice.json",
+    "example_timed_choice.json",
+    "example_sub_scene.json",
+    "example_sub_scene_greeting.json",
+    "example_checkpoint.json",
+    "example_locale.json"
   ],
   "quests": [
     "example_tutorial_quest.json",
     "example_side_quest.json"
-  ]
+  ],
+  "localeFiles": {
+    "en": "lang/en.json"
+  }
 }

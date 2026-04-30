@@ -1,6 +1,6 @@
 /*:
  * @target MZ
- * @plugindesc v1.0 Smart Event Director MZ - modular cutscene/story runner.
+ * @plugindesc v1.1 Smart Event Director MZ - modular cutscene/story runner.
  * @author Smart Event Director MZ
  *
  * @param Debug Mode
@@ -81,6 +81,11 @@
  * @default false
  * @desc Allow reloading JSON data at runtime via ReloadData plugin command.
  *
+ * @param Locale
+ * @type string
+ * @default en
+ * @desc Active locale for string tables (e.g., en, es, jp). Requires localeFiles in index.json.
+ *
  * @command PlayScene
  * @text Play Scene
  * @arg sceneId
@@ -160,81 +165,46 @@
  * @command OpenRelationshipViewer
  * @text Open Relationship Viewer
  *
+ * @command RetryCheckpoint
+ * @text Retry Last Checkpoint
+ *
+ * @command RetryCheckpointId
+ * @text Retry Checkpoint by ID
+ * @arg id
+ * @type string
+ * @text Checkpoint ID
+ *
  * @help
  * ============================================================
- * Smart Event Director MZ - v1.0.0
+ * Smart Event Director MZ - v1.1.0
  * ============================================================
+ * Modular cutscene/story runner via JSON scene files.
  *
- * Overview
- * --------
- * Smart Event Director MZ is a modular cutscene and story
- * runner. Define scenes, quests, and relationships in JSON
- * and play them back via a step-based engine.
+ * Quick Setup:
+ *  1. Create data/SmartEventDirector/
+ *  2. Create index.json with schema SED_INDEX_1
+ *  3. Put scene/quest JSON files in subfolders
  *
- * Quick Setup
- * -----------
- * 1. Create data/SmartEventDirector/
- * 2. Create index.json:
- *    {"scenes":{"opening":"scenes/opening.json"},
- *     "quests":{"rescueCat":"quests/rescue_cat.json"}}
- * 3. Put JSON files in the referenced subfolders.
+ * Plugin Commands:
+ *  PlayScene, StopScene, SkipScene, RecoverScene, ToggleDebug
+ *  SetRelationship, AddRelationship, StartQuest, CompleteQuest
+ *  FailQuest, UpdateObjective, OpenQuestLog, OpenRelationshipViewer
+ *  RetryCheckpoint, RetryCheckpointId, ReloadData
  *
- * Plugin Commands
- * ---------------
- *  PlayScene <sceneId> [wait]
- *  StopScene
- *  SkipScene
- *  RecoverScene
- *  ToggleDebug
- *  SetRelationship <target> <value>
- *  AddRelationship <target> <value>
- *  StartQuest <questId>
- *  CompleteQuest <questId>
- *  FailQuest <questId>
- *  UpdateObjective <questId> <objective> [completed]
- *  OpenQuestLog
- *  OpenRelationshipViewer
- *  ReloadData  (requires Enable Hot Reload)
- *
- * Step Types
- * ----------
+ * Step Types:
  *  Core: dialogue, narration, choice, wait, switch, variable
  *  Movement: moveOneTile, moveTo, moveRoute, lockPlayer, unlockPlayer
  *  Flow: label, jump, loop, endLoop, condition, script, comment
+ *  Scene: callScene, return, checkpoint, preload
  *  Visual: fade, fadeIn, fadeOut, picture, camera, weather, transition, titleCard
- *  Audio: audio
- *  Quest: startQuest, updateObjective, completeQuest, failQuest, questReward
- *  Relationship: relationship
- *  System: commonEvent, selfSwitch
+ *  Audio: audio | Quest: startQuest, updateObjective, completeQuest, failQuest, questReward
+ *  Relationship: relationship | System: commonEvent, selfSwitch
  *
- * Scene JSON Example
- * ------------------
- * {"id":"opening","title":"Opening","canSkip":true,
- *  "steps":[
- *   {"type":"fadeOut","duration":30},
- *   {"type":"dialogue","speaker":"Narrator","text":"Hello."},
- *   {"type":"choice","text":"Go?","choices":[
- *    {"text":"Yes","jump":"go"},{"text":"No","jump":"end"}]},
- *   {"type":"label","name":"go"},
- *   {"type":"dialogue","text":"You go."},
- *   {"type":"jump","label":"end"},
- *   {"type":"label","name":"end"},
- *   {"type":"fadeIn","duration":30}
- *  ]}
- *
- * Quest JSON Example
- * ------------------
- * {"id":"rescueCat","title":"Rescue the Cat",
- *  "description":"Find the cat.","objectives":{
- *   "findCat":"Search the forest.","returnCat":"Return it."},
- *  "rewards":{"gold":100,"items":[{"id":1,"amount":1}]}}
- *
- * Notes
- * -----
- * - JSON paths in index.json are relative to the data folder.
- * - Browser builds may restrict local file loading; test deploys.
- * - Scenes run on the map scene.
- * - Use the debug overlay to inspect active steps.
+ * Notes:
+ *  - Use \v[n], \n[n], \p[n] for variable/actor/party interpolation
+ *  - Use \t[key] for locale string resolution
+ *  - Scenes default to map context; set "context":"battle" for battle scenes
+ *  - See docs/ for full STEP_TYPES.md, CONDITIONS.md, and API_REFERENCE.md
  */
 (() => {
   "use strict";
@@ -253,6 +223,8 @@
     "core/SED_Params.js",
     "core/SED_Logger.js",
     "core/SED_Util.js",
+    "core/SED_Locale.js",
+    "core/SED_ModuleLoader.js",
 
     "runtime/SED_StepRegistry.js",
 
@@ -307,7 +279,17 @@
     "steps/SED_Step_TitleCard.js",
 
     "runtime/SED_HotReload.js",
-    "runtime/SED_PluginCommands.js"
+    "runtime/SED_AssetLoader.js",
+    "runtime/SED_Checkpoint.js",
+    "runtime/SED_History.js",
+    "runtime/SED_BattleIntegration.js",
+    "runtime/SED_PluginCommands.js",
+
+    "steps/SED_Step_CallScene.js",
+    "steps/SED_Step_Return.js",
+    "steps/SED_Step_Preload.js",
+    "steps/SED_Step_Checkpoint.js"
+  ]
   ];
 
   function moduleBasePath() {

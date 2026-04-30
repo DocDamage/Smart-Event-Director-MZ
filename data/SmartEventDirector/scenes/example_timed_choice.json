@@ -1,0 +1,30 @@
+{
+  "schema": "SED_SCENE_1",
+  "sceneId": "example_timed_choice",
+  "title": "Timed Choice Demo",
+  "canSkip": true,
+  "steps": [
+    { "type": "dialogue", "speaker": "Guard", "text": "Halt! Who goes there?" },
+    {
+      "type": "choice",
+      "prompt": "Quickly now!",
+      "timeout": 180,
+      "timeoutBehavior": "jump",
+      "timeoutJump": "tooSlow",
+      "options": [
+        { "text": "A friend!", "jump": "friend" },
+        { "text": "Just passing through.", "jump": "passing" }
+      ],
+      "cancel": "none"
+    },
+    { "type": "label", "name": "friend" },
+    { "type": "dialogue", "speaker": "Guard", "text": "Friends are welcome here." },
+    { "type": "jump", "label": "end" },
+    { "type": "label", "name": "passing" },
+    { "type": "dialogue", "speaker": "Guard", "text": "Move along, then." },
+    { "type": "jump", "label": "end" },
+    { "type": "label", "name": "tooSlow" },
+    { "type": "dialogue", "speaker": "Guard", "text": "Too slow. Arrest them!" },
+    { "type": "label", "name": "end" }
+  ]
+}

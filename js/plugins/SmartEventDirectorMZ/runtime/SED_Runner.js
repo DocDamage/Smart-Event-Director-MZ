@@ -17,6 +17,9 @@
     // v0.2: scene queue
     _pendingQueue: [],
 
+    // v1.1: call stack for sub-scenes
+    _callStack: [],
+
     isBusy() {
       return this._state === "running" || this._state === "starting";
     },
@@ -33,7 +36,13 @@
         contextLocals: SED.Util.cloneJson(this._context.local || {}),
         activeStepType: this._activeStep ? this._activeStep.type : null,
         activeStepData: this._activeStep ? SED.Util.cloneJson(this._activeStep) : null,
-        runtimeData: this._activeRuntime ? SED.Util.cloneJson(this._activeRuntime) : null
+        runtimeData: this._activeRuntime ? SED.Util.cloneJson(this._activeRuntime) : null,
+        callStack: this._callStack.map(entry => ({
+          sceneId: entry.sceneId,
+          queueIndex: entry.queue.currentIndex(),
+          contextLocals: SED.Util.cloneJson(entry.context.local || {}),
+          returnLabel: entry.returnLabel
+        }))
       };
     },
 
@@ -76,6 +85,19 @@
         return false;
       }
 
+      // v1.1: battle context check
+      const context = String(scene.context || "map");
+      const isBattle = SceneManager._scene && SceneManager._scene.constructor === Scene_Battle;
+      const isMap = SceneManager._scene && SceneManager._scene.constructor === Scene_Map;
+      if (context === "battle" && !isBattle) {
+        SED.Logger.warn("Scene " + sceneId + " requires battle context.");
+        return false;
+      }
+      if (context === "map" && !isMap) {
+        SED.Logger.warn("Scene " + sceneId + " requires map context.");
+        return false;
+      }
+
       SED.Cleanup.snapshot();
 
       this._state = "running";
@@ -111,6 +133,10 @@
       const data = SED.Save && SED.Save.getResumeData ? SED.Save.getResumeData() : null;
       if (!data) return false;
       const result = this.resume(data.sceneId, data.queueIndex || 0);
+      if (result && data.callStack && data.callStack.length > 0) {
+        // v1.1: restore call stack is handled by caller reconstructing state
+        SED.Logger.info("Resumed scene with call stack depth:", data.callStack.length);
+      }
       if (result && SED.Save.clearResumeData) {
         SED.Save.clearResumeData();
       }
@@ -133,7 +159,6 @@
       this._forceIdle();
     },
 
-    // v0.2: scene skip - stop current and start next if queued, else go idle
     skip() {
       if (this._state !== "running") return;
 
@@ -158,7 +183,6 @@
     },
 
     update() {
-      // v0.2: process queued scenes after previous completes
       if (this._state !== "running") {
         if (this._pendingQueue.length > 0) {
           const next = this._pendingQueue.shift();
@@ -209,15 +233,18 @@
         throw new Error("No handler for step type: " + step.type);
       }
 
+      // v1.1: interpolate all string values in the step
+      const interpolatedStep = SED.Util.interpolateDeep(step);
+
       const runtime = {
         startedFrame: Graphics.frameCount
       };
 
-      this._activeStep = step;
+      this._activeStep = interpolatedStep;
       this._activeHandler = handler;
       this._activeRuntime = runtime;
 
-      handler.start(step, this._context, runtime);
+      handler.start(interpolatedStep, this._context, runtime);
     },
 
     _finishActiveStep() {
@@ -241,6 +268,21 @@
     _completeScene() {
       SED.Save.markCompleted(this._scene.sceneId);
       SED.Logger.info("Scene completed:", this._scene.sceneId);
+
+      // v1.1: if call stack has entries, pop and resume
+      if (this._callStack.length > 0) {
+        const entry = this._callStack.pop();
+        this._scene = entry.scene;
+        this._queue = entry.queue;
+        this._context = entry.context;
+        this._sceneTimeoutFrame = entry.timeoutFrame;
+        if (entry.returnLabel) {
+          this._queue.jumpTo(entry.returnLabel);
+        }
+        SED.Logger.info("Returned to scene:", entry.sceneId);
+        return;
+      }
+
       this._forceIdle();
     },
 
@@ -268,6 +310,7 @@
       this._activeRuntime = null;
       this._sceneTimeoutFrame = 0;
       this._transferResumeData = null;
+      this._callStack = [];
     },
 
     _onTransferReserved(mapId, x, y, d, fadeType) {
@@ -277,6 +320,33 @@
         queueIndex: this._queue.currentIndex(),
         contextLocals: SED.Util.cloneJson(this._context.local || {})
       };
+    },
+
+    // v1.1: push current scene onto call stack and start sub-scene
+    _callSubScene(sceneId, returnLabel) {
+      if (!this.isBusy()) return false;
+
+      const entry = {
+        sceneId: this._scene.sceneId,
+        scene: this._scene,
+        queue: this._queue,
+        context: this._context,
+        timeoutFrame: this._sceneTimeoutFrame,
+        returnLabel: returnLabel || null
+      };
+
+      this._callStack.push(entry);
+
+      // Reset runner state for new scene (keep callStack)
+      this._scene = null;
+      this._queue = null;
+      this._context = null;
+      this._activeStep = null;
+      this._activeHandler = null;
+      this._activeRuntime = null;
+      this._sceneTimeoutFrame = 0;
+
+      return this.play(sceneId, {});
     }
   };
 
@@ -304,5 +374,5 @@
   };
 
   SED.Runner = Runner;
-  SED.registerModule("Runner", "0.4.0");
+  SED.registerModule("Runner", "1.1.0");
 })();

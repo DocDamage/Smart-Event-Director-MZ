@@ -97,6 +97,20 @@
         SED.QuestRegistry.register(questData);
       }
     }
+
+    // v1.1: reload locale strings
+    if (index.localeFiles && SED.Locale && SED.Locale.loadStrings) {
+      const locale = SED.Params && SED.Params.locale ? SED.Params.locale : "en";
+      const localeFile = index.localeFiles[locale];
+      if (localeFile) {
+        try {
+          const localeData = await loadJsonNoCache("data/SmartEventDirector/" + localeFile);
+          SED.Locale.loadStrings(localeData);
+        } catch (e) {
+          SED.Logger.warn("Failed to load locale file:", localeFile);
+        }
+      }
+    }
   }
 
   async function loadQuests(questFiles) {
@@ -198,6 +212,21 @@
       }
     }
 
+    // v1.1: Load locale strings
+    if (index.localeFiles && SED.Locale && SED.Locale.loadStrings) {
+      const locale = SED.Params && SED.Params.locale ? SED.Params.locale : "en";
+      const localeFile = index.localeFiles[locale];
+      if (localeFile) {
+        try {
+          const localeData = await loadJson("data/SmartEventDirector/" + localeFile);
+          SED.Locale.loadStrings(localeData);
+          SED.Locale.setLocale(locale);
+        } catch (e) {
+          SED.Logger.warn("Failed to load locale file:", localeFile);
+        }
+      }
+    }
+
     if (errors.length > 0) {
       throw new Error(errors.join("\n"));
     }
@@ -212,5 +241,5 @@
     loadQuests
   };
 
-  SED.registerModule("DataLoader", "0.2.0");
+  SED.registerModule("DataLoader", "1.1.0");
 })();

@@ -61,6 +61,15 @@
     return scene;
   }
 
+  async function loadLocale(locale) {
+    const indexPath = SED.Params.dataIndexPath;
+    const index = await loadJsonNoCache(indexPath);
+    if (!index || !index.localeFiles) return null;
+    const localeFile = index.localeFiles[locale];
+    if (!localeFile) return null;
+    return loadJsonNoCache("data/SmartEventDirector/" + localeFile);
+  }
+
   async function reloadAll() {
     const indexPath = SED.Params.dataIndexPath;
     const index = await loadJsonNoCache(indexPath);
@@ -98,17 +107,34 @@
       }
     }
 
-    // v1.1: reload locale strings
-    if (index.localeFiles && SED.Locale && SED.Locale.loadStrings) {
-      const locale = SED.Params && SED.Params.locale ? SED.Params.locale : "en";
-      const localeFile = index.localeFiles[locale];
-      if (localeFile) {
-        try {
-          const localeData = await loadJsonNoCache("data/SmartEventDirector/" + localeFile);
-          SED.Locale.loadStrings(localeData);
-        } catch (e) {
-          SED.Logger.warn("Failed to load locale file:", localeFile);
+    if (SED.AchievementRegistry && SED.AchievementRegistry.clear) {
+      SED.AchievementRegistry.clear();
+    }
+
+    if (Array.isArray(index.achievements)) {
+      for (const file of index.achievements) {
+        const achievementPath = "data/SmartEventDirector/achievements/" + file;
+        const achievementData = await loadJsonNoCache(achievementPath);
+
+        if (!achievementData.achievementId) {
+          throw new Error("Achievement data missing achievementId in " + file);
         }
+
+        SED.AchievementRegistry.register(achievementData);
+      }
+    }
+
+    // v1.1: reload locale strings
+    if (SED.Locale && SED.Locale.loadStrings) {
+      const locale = SED.Params && SED.Params.locale ? SED.Params.locale : "en";
+      try {
+        const localeData = await loadLocale(locale);
+        if (localeData) {
+          SED.Locale.loadStrings(localeData);
+          SED.Locale.setLocale(locale);
+        }
+      } catch (e) {
+        SED.Logger.warn("Failed to reload locale for:", locale);
       }
     }
   }
@@ -212,18 +238,42 @@
       }
     }
 
-    // v1.1: Load locale strings
-    if (index.localeFiles && SED.Locale && SED.Locale.loadStrings) {
-      const locale = SED.Params && SED.Params.locale ? SED.Params.locale : "en";
-      const localeFile = index.localeFiles[locale];
-      if (localeFile) {
+    // Load achievements
+    if (Array.isArray(index.achievements)) {
+      for (const file of index.achievements) {
         try {
-          const localeData = await loadJson("data/SmartEventDirector/" + localeFile);
+          const achievementPath = "data/SmartEventDirector/achievements/" + file;
+          const achievementData = await loadJson(achievementPath);
+
+          if (!achievementData.achievementId) {
+            errors.push("SED achievement invalid: " + file);
+            continue;
+          }
+
+          SED.AchievementRegistry.register(achievementData);
+        } catch (error) {
+          if (isLoadError(error)) {
+            errors.push("SED achievement file missing: " + file);
+          } else if (isJsonParseError(error)) {
+            errors.push("SED achievement JSON invalid: " + file + " — " + error.message);
+          } else {
+            errors.push("SED achievement error: " + file + " — " + error.message);
+          }
+        }
+      }
+    }
+
+    // v1.1: Load locale strings
+    if (SED.Locale && SED.Locale.loadStrings) {
+      const locale = SED.Params && SED.Params.locale ? SED.Params.locale : "en";
+      try {
+        const localeData = await loadLocale(locale);
+        if (localeData) {
           SED.Locale.loadStrings(localeData);
           SED.Locale.setLocale(locale);
-        } catch (e) {
-          SED.Logger.warn("Failed to load locale file:", localeFile);
         }
+      } catch (e) {
+        SED.Logger.warn("Failed to load locale for:", locale);
       }
     }
 
@@ -238,7 +288,8 @@
     reloadScene,
     reloadAll,
     loadAll,
-    loadQuests
+    loadQuests,
+    loadLocale
   };
 
   SED.registerModule("DataLoader", "1.1.0");

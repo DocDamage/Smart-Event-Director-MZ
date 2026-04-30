@@ -31,6 +31,13 @@
       if (SED.TextEffects) {
         SED.TextEffects.pushOverride(step.textSpeed, step.autoAdvance);
       }
+      if (step.voice && SED.VoiceManager) {
+        SED.VoiceManager.play(step.voice);
+      }
+      if (step.theme && SED.ThemeManager) {
+        SED.ThemeManager.apply(step.theme);
+        runtime._themeApplied = true;
+      }
       runtime.phase = "waitForMessageSlot";
     },
 
@@ -46,6 +53,15 @@
 
         if (step.speaker && $gameMessage.setSpeakerName) {
           $gameMessage.setSpeakerName(String(step.speaker));
+        }
+
+        if (step.bust !== undefined && SED.BustManager) {
+          if (step.bust) {
+            SED.BustManager.setEmotion(step.bust, step.emotion || "neutral");
+            SED.BustManager.focus(step.bust);
+          } else {
+            SED.BustManager.focus(null);
+          }
         }
 
         $gameMessage.add(String(step.text || ""));
@@ -67,6 +83,13 @@
         const done = !$gameMessage.isBusy();
         if (done && SED.TextEffects) {
           SED.TextEffects.clearOverride();
+        }
+        if (done && SED.VoiceManager) {
+          SED.VoiceManager.restoreBgm();
+        }
+        if (done && runtime._themeApplied && SED.ThemeManager) {
+          SED.ThemeManager.reset();
+          runtime._themeApplied = false;
         }
         return done;
       }

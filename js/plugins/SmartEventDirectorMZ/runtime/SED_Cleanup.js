@@ -77,10 +77,19 @@
       AudioManager.stopMe();
     }
 
+    if (SED.VoiceManager) {
+      SED.VoiceManager.stop();
+      SED.VoiceManager.restoreBgm();
+    }
+
     restorePictures(_snapshot.pictures);
   }
 
   function clear() {
+    if (SED.VoiceManager) {
+      SED.VoiceManager.stop();
+      SED.VoiceManager.restoreBgm();
+    }
     _snapshot = null;
   }
 

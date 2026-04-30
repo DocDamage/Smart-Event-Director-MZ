@@ -3,6 +3,7 @@
 
   const SED = window.SED;
   const scenes = Object.create(null);
+  const _triggers = Object.create(null);
 
   function register(scene) {
     const id = String(scene.sceneId || "");
@@ -28,6 +29,14 @@
 
   function list() {
     return Object.keys(scenes);
+  }
+
+  function registerTriggers(sceneId, triggers) {
+    _triggers[String(sceneId)] = triggers;
+  }
+
+  function getTriggers(sceneId) {
+    return _triggers[String(sceneId)] || null;
   }
 
   function unregister(sceneId) {
@@ -57,7 +66,10 @@
     get,
     has,
     list,
-    clear
+    listIds: list,
+    clear,
+    registerTriggers,
+    getTriggers
   };
 
   SED.registerModule("SceneRegistry", "0.1.0");

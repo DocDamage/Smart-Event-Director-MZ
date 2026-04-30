@@ -1,6 +1,6 @@
 # Smart Event Director MZ
 
-[![Version](https://img.shields.io/badge/version-v1.1-blue)](https://github.com/yourusername/SmartEventDirectorMZ)
+[![Version](https://img.shields.io/badge/version-v1.2-blue)](https://github.com/yourusername/SmartEventDirectorMZ)
 [![RPG Maker MZ](https://img.shields.io/badge/RPG%20Maker-MZ-green)](https://www.rpgmakerweb.com/products/rpg-maker-mz)
 [![License](https://img.shields.io/badge/license-MIT-yellow)](LICENSE)
 
@@ -18,7 +18,7 @@ The core idea:
 
 - **Modular frame-based scene runner** — Scenes execute step-by-step on every frame with a clean registry pattern
 - **JSON-driven scene definitions** — Write scenes in plain JSON; no JavaScript knowledge required
-- **34+ step types** — dialogue, narration, choice, movement, camera, audio, pictures, weather, transitions, sub-scenes, checkpoints, preloading, and more
+- **40+ step types** — dialogue, narration, choice, movement, camera, audio, pictures, weather, transitions, sub-scenes, checkpoints, preloading, bust portraits, QTE, timeline, achievements, and more
 - **Quest system** — Define quests with objectives, track progress, grant rewards, and show toast notifications
 - **Relationship system** — Point-based relationship tracking for named characters with a built-in viewer
 - **Choice memory and scene history** — Remember player choices across saves; conditionally branch based on past decisions
@@ -32,6 +32,15 @@ The core idea:
 - **Asset preloading** — Preload images and audio to prevent frame hitches
 - **Battle scene support** — Run cutscenes during combat
 - **Dialogue history with state snapshots** — Review past dialogue with world state context
+- **Character bust / portrait system** — Half-body portraits with emotions, positions, and focus dimming
+- **Voice acting per line** — Play voice clips with auto-ducking BGM
+- **Screen effects suite** — Camera shake with decay, zoom tweening, effect foundations
+- **Auto-start scene triggers** — Start scenes on map enter, proximity, switch changes
+- **Achievement system** — Track and display achievements with toasts and viewer
+- **Quick-time events (QTE)** — Press, mash, and sequence mini-games
+- **Cinematic camera timelines** — Keyframe-based camera animation with easing
+- **Parallel scene layers** — Run background and overlay scenes simultaneously
+- **Visual scripting editor** — Separate React-based node editor for scenes
 - **Debug overlay and hot-reload** — Visual HUD shows scene/step/state/lock/timeout; reload data without restarting the game (dev mode)
 - **Dialogue log** — Scrollable text history of all dialogue and narration, accessible with a keybind
 - **Text effects** — Per-message typing speed control and auto-advance

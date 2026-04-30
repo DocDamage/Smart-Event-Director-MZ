@@ -59,6 +59,11 @@
       sedData.activeScene = SED.Runner.getState();
     }
 
+    // Achievement state
+    if (SED.AchievementState && SED.AchievementState.toJSON) {
+      sedData.achievements = SED.AchievementState.toJSON();
+    }
+
     return sedData;
   }
 
@@ -100,6 +105,11 @@
           SED.RelationshipState.setPoints(target, rels[target]);
         }
       }
+    }
+
+    // Restore achievement state
+    if (data.achievements && SED.AchievementState && SED.AchievementState.fromJSON) {
+      SED.AchievementState.fromJSON(data.achievements);
     }
   }
 

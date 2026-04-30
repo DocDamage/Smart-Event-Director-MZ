@@ -1,0 +1,16 @@
+{
+  "schema": "SED_SCENE_1",
+  "sceneId": "example_qte",
+  "title": "QTE Demo",
+  "canSkip": true,
+  "steps": [
+    { "type": "dialogue", "speaker": "Narrator", "text": "A boulder is rolling toward you!" },
+    { "type": "qte", "variant": "press", "prompt": "Press OK to dodge!", "key": "ok", "window": 120, "successJump": "dodge", "failJump": "hit" },
+    { "type": "label", "name": "dodge" },
+    { "type": "dialogue", "speaker": "Hero", "text": "That was close!" },
+    { "type": "jump", "label": "end" },
+    { "type": "label", "name": "hit" },
+    { "type": "dialogue", "speaker": "Hero", "text": "Ouch..." },
+    { "type": "label", "name": "end" }
+  ]
+}

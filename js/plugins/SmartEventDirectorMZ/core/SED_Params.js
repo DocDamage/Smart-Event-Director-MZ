@@ -33,6 +33,7 @@
     allowSceneQueue: bool("Allow Scene Queue", false),
     defaultSkipPrevention: bool("Default Can Skip", true),
     enableRelationshipViewer: bool("Enable Relationship Viewer", false),
+    enableAchievementViewer: bool("Enable Achievement Viewer", false),
 
     // v0.4 params
     enableQuestLog: bool("Enable Quest Log", true),

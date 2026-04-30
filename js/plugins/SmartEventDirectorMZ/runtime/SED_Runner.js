@@ -117,6 +117,11 @@
       return true;
     },
 
+    playIfNotBusy(sceneId) {
+      if (this.isBusy()) return false;
+      return this.play(sceneId, {});
+    },
+
     resume(sceneId, queueIndex) {
       if (this.isBusy()) {
         SED.Logger.warn("Cannot resume: runner is busy.");

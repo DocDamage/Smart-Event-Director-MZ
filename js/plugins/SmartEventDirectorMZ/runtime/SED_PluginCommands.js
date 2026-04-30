@@ -45,6 +45,31 @@
     if (SED.DebugOverlay) SED.DebugOverlay.toggle();
   });
 
+  PluginManager.registerCommand(PLUGIN_NAME, "PlayLayer", function(args) {
+    const sceneId = String(args.sceneId || "");
+    const priority = Number(args.priority || 0);
+    if (!sceneId) {
+      console.error("SED PlayLayer missing sceneId.");
+      return;
+    }
+    if (SED.LayerManager && SED.LayerManager.play) {
+      SED.LayerManager.play(sceneId, { priority: priority });
+    }
+  });
+
+  PluginManager.registerCommand(PLUGIN_NAME, "ChangeLocale", function(args) {
+    const locale = String(args.locale || "");
+    if (!locale) {
+      console.error("SED ChangeLocale missing locale.");
+      return;
+    }
+    if (SED.Locale && SED.Locale.reloadLocale) {
+      SED.Locale.reloadLocale(locale).catch(function(e) {
+        console.error("SED ChangeLocale failed:", e);
+      });
+    }
+  });
+
   // Checkpoint commands
   PluginManager.registerCommand(PLUGIN_NAME, "RetryCheckpoint", function() {
     if (SED.Checkpoint && SED.Checkpoint.restore) {
@@ -120,6 +145,26 @@
     }
   });
 
+  // Achievement commands
+  PluginManager.registerCommand(PLUGIN_NAME, "UnlockAchievement", function(args) {
+    const achievementId = String(args.achievementId || "");
+    if (achievementId && SED.AchievementState) {
+      const newlyUnlocked = SED.AchievementState.unlock(achievementId);
+      if (newlyUnlocked && SED.AchievementToast && SED.AchievementToast.show) {
+        const data = SED.AchievementRegistry.get(achievementId);
+        const title = data ? (data.title || achievementId) : achievementId;
+        const icon = data ? data.icon : null;
+        SED.AchievementToast.show(achievementId, title, icon);
+      }
+    }
+  });
+
+  PluginManager.registerCommand(PLUGIN_NAME, "OpenAchievementViewer", function() {
+    if (SED.AchievementViewer && SED.AchievementViewer.open) {
+      SED.AchievementViewer.open();
+    }
+  });
+
   // Menu integration
   const _Window_MenuCommand_makeCommandList = Window_MenuCommand.prototype.makeCommandList;
   Window_MenuCommand.prototype.makeCommandList = function() {
@@ -132,6 +177,10 @@
     if (SED.Params && SED.Params.enableRelationshipViewer) {
       this.addCommand("Relationships", "relationships", true);
     }
+
+    if (SED.Params && SED.Params.enableAchievementViewer) {
+      this.addCommand("Achievements", "achievements", true);
+    }
   };
 
   const _Scene_Menu_createCommandWindow = Scene_Menu.prototype.createCommandWindow;
@@ -139,6 +188,7 @@
     _Scene_Menu_createCommandWindow.apply(this, arguments);
     this._commandWindow.setHandler("questLog", this.commandQuestLog.bind(this));
     this._commandWindow.setHandler("relationships", this.commandRelationships.bind(this));
+    this._commandWindow.setHandler("achievements", this.commandAchievements.bind(this));
   };
 
   Scene_Menu.prototype.commandQuestLog = function() {
@@ -153,5 +203,11 @@
     }
   };
 
-  SED.registerModule("PluginCommands", "1.1.0");
+  Scene_Menu.prototype.commandAchievements = function() {
+    if (SED.AchievementViewer && SED.AchievementViewer.open) {
+      SED.AchievementViewer.open();
+    }
+  };
+
+  SED.registerModule("PluginCommands", "1.2.0");
 })();

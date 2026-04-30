@@ -1,6 +1,6 @@
 /*:
  * @target MZ
- * @plugindesc v1.1 Smart Event Director MZ - modular cutscene/story runner.
+ * @plugindesc v1.2 Smart Event Director MZ - modular cutscene/story runner.
  * @author Smart Event Director MZ
  *
  * @param Debug Mode
@@ -45,6 +45,11 @@
  * @type boolean
  * @default false
  * @desc Adds a Relationships command to the main menu.
+ *
+ * @param Enable Achievement Viewer
+ * @type boolean
+ * @default false
+ * @desc Adds an Achievements command to the main menu.
  *
  * @param Quest Toast Position
  * @type string
@@ -165,6 +170,15 @@
  * @command OpenRelationshipViewer
  * @text Open Relationship Viewer
  *
+ * @command UnlockAchievement
+ * @text Unlock Achievement
+ * @arg achievementId
+ * @type string
+ * @text Achievement ID
+ *
+ * @command OpenAchievementViewer
+ * @text Open Achievement Viewer
+ *
  * @command RetryCheckpoint
  * @text Retry Last Checkpoint
  *
@@ -189,6 +203,7 @@
  *  PlayScene, StopScene, SkipScene, RecoverScene, ToggleDebug
  *  SetRelationship, AddRelationship, StartQuest, CompleteQuest
  *  FailQuest, UpdateObjective, OpenQuestLog, OpenRelationshipViewer
+ *  UnlockAchievement, OpenAchievementViewer
  *  RetryCheckpoint, RetryCheckpointId, ReloadData
  *
  * Step Types:
@@ -198,7 +213,7 @@
  *  Scene: callScene, return, checkpoint, preload
  *  Visual: fade, fadeIn, fadeOut, picture, camera, weather, transition, titleCard
  *  Audio: audio | Quest: startQuest, updateObjective, completeQuest, failQuest, questReward
- *  Relationship: relationship | System: commonEvent, selfSwitch
+ *  Relationship: relationship | Achievement: unlockAchievement | System: commonEvent, selfSwitch
  *
  * Notes:
  *  - Use \v[n], \n[n], \p[n] for variable/actor/party interpolation
@@ -241,8 +256,12 @@
     "runtime/SED_DebugOverlay.js",
     "runtime/SED_DialogueLog.js",
     "runtime/SED_TextEffects.js",
+    "runtime/SED_Tween.js",
+    "runtime/SED_ThemeManager.js",
+    "runtime/SED_ScreenEffects.js",
     "runtime/SED_InputBuffer.js",
     "runtime/SED_Runner.js",
+    "runtime/SED_Triggers.js",
     "runtime/SED_Profiler.js",
 
     "steps/SED_Step_LabelJump.js",
@@ -260,6 +279,7 @@
     "steps/SED_Step_Audio.js",
     "steps/SED_Step_Picture.js",
     "steps/SED_Step_Camera.js",
+    "steps/SED_Step_Timeline.js",
     "steps/SED_Step_Weather.js",
 
     "data/SED_QuestRegistry.js",
@@ -272,6 +292,12 @@
     "runtime/SED_QuestTracker.js",
     "runtime/SED_QuestLog.js",
 
+    "data/SED_AchievementRegistry.js",
+    "runtime/SED_AchievementState.js",
+    "runtime/SED_AchievementToast.js",
+    "runtime/SED_AchievementViewer.js",
+    "steps/SED_Step_Achievement.js",
+
     "steps/SED_Step_Script.js",
     "steps/SED_Step_Comment.js",
     "steps/SED_Step_Loop.js",
@@ -283,13 +309,13 @@
     "runtime/SED_Checkpoint.js",
     "runtime/SED_History.js",
     "runtime/SED_BattleIntegration.js",
+    "runtime/SED_SceneLayer.js",
     "runtime/SED_PluginCommands.js",
 
     "steps/SED_Step_CallScene.js",
     "steps/SED_Step_Return.js",
     "steps/SED_Step_Preload.js",
     "steps/SED_Step_Checkpoint.js"
-  ]
   ];
 
   function moduleBasePath() {
@@ -315,6 +341,15 @@
 
       if (SED.DataLoader && SED.DataLoader.loadAll) {
         await SED.DataLoader.loadAll();
+      }
+
+      if (SED.SceneRegistry && SED.Triggers) {
+        for (const sceneId of SED.SceneRegistry.listIds()) {
+          const scene = SED.SceneRegistry.get(sceneId);
+          if (scene && scene.triggers) {
+            SED.Triggers.register(sceneId, scene.triggers);
+          }
+        }
       }
 
       if (SED.Params && SED.Params.validate) {
@@ -354,46 +389,27 @@
   Scene_Map.prototype.update = function() {
     _Scene_Map_update.apply(this, arguments);
 
-    if (SED.Runner && SED.Runner.update) {
-      SED.Runner.update();
-    }
-
-    if (SED.DebugOverlay && SED.DebugOverlay.update) {
-      SED.DebugOverlay.update();
-    }
-
-    if (SED.QuestToast && SED.QuestToast.update) {
-      SED.QuestToast.update();
-    }
-
-    if (SED.QuestTracker && SED.QuestTracker.update) {
-      SED.QuestTracker.update();
-    }
-
-    if (SED.DialogueLog && SED.DialogueLog.update) {
-      SED.DialogueLog.update();
-    }
+    if (SED.Runner && SED.Runner.update) SED.Runner.update();
+    if (SED.LayerManager && SED.LayerManager.update) SED.LayerManager.update();
+    if (SED.Tween && SED.Tween.update) SED.Tween.update();
+    if (SED.Triggers && SED.Triggers.update) SED.Triggers.update();
+    if (SED.DebugOverlay && SED.DebugOverlay.update) SED.DebugOverlay.update();
+    if (SED.QuestToast && SED.QuestToast.update) SED.QuestToast.update();
+    if (SED.AchievementToast && SED.AchievementToast.update) SED.AchievementToast.update();
+    if (SED.QuestTracker && SED.QuestTracker.update) SED.QuestTracker.update();
+    if (SED.DialogueLog && SED.DialogueLog.update) SED.DialogueLog.update();
+    if (SED.ScreenEffects && SED.ScreenEffects.update) SED.ScreenEffects.update();
   };
 
   const _Scene_Map_postUpdate = Scene_Map.prototype.postUpdate;
   Scene_Map.prototype.postUpdate = function() {
     _Scene_Map_postUpdate.apply(this, arguments);
 
-    if (SED.DebugOverlay && SED.DebugOverlay.draw) {
-      SED.DebugOverlay.draw();
-    }
-
-    if (SED.QuestToast && SED.QuestToast.draw) {
-      SED.QuestToast.draw();
-    }
-
-    if (SED.QuestTracker && SED.QuestTracker.draw) {
-      SED.QuestTracker.draw();
-    }
-
-    if (SED.DialogueLog && SED.DialogueLog.draw) {
-      SED.DialogueLog.draw();
-    }
+    if (SED.DebugOverlay && SED.DebugOverlay.draw) SED.DebugOverlay.draw();
+    if (SED.QuestToast && SED.QuestToast.draw) SED.QuestToast.draw();
+    if (SED.AchievementToast && SED.AchievementToast.draw) SED.AchievementToast.draw();
+    if (SED.QuestTracker && SED.QuestTracker.draw) SED.QuestTracker.draw();
+    if (SED.DialogueLog && SED.DialogueLog.draw) SED.DialogueLog.draw();
   };
 
   const _Scene_Map_updateScene = Scene_Map.prototype.updateScene;

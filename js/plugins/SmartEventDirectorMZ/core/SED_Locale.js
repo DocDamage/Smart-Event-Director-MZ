@@ -35,12 +35,24 @@
     return step[textField];
   }
 
+  async function reloadLocale(locale) {
+    for (const key in strings) {
+      delete strings[key];
+    }
+    const data = await SED.DataLoader.loadLocale(locale);
+    if (data) {
+      loadStrings(data);
+      setLocale(locale);
+    }
+  }
+
   SED.Locale = {
     setLocale,
     getLocale,
     loadStrings,
     get,
-    resolveStepText
+    resolveStepText,
+    reloadLocale
   };
 
   SED.registerModule("Locale", "1.1.0");

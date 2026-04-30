@@ -20,11 +20,18 @@
     "example_sub_scene.json",
     "example_sub_scene_greeting.json",
     "example_checkpoint.json",
-    "example_locale.json"
+    "example_locale.json",
+    "example_bust_voice.json",
+    "example_qte.json",
+    "example_timeline.json",
+    "example_achievement_unlock.json"
   ],
   "quests": [
     "example_tutorial_quest.json",
     "example_side_quest.json"
+  ],
+  "achievements": [
+    "example_achievements.json"
   ],
   "localeFiles": {
     "en": "lang/en.json"

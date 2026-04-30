@@ -45,6 +45,8 @@ KNOWN_STEP_TYPES = frozenset(
         "failQuest",
         "questReward",
         "relationship",
+        "transition",
+        "weather",
     ]
 )
 

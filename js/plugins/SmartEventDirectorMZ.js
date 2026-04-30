@@ -159,6 +159,82 @@
  *
  * @command OpenRelationshipViewer
  * @text Open Relationship Viewer
+ *
+ * @help
+ * ============================================================
+ * Smart Event Director MZ - v1.0.0
+ * ============================================================
+ *
+ * Overview
+ * --------
+ * Smart Event Director MZ is a modular cutscene and story
+ * runner. Define scenes, quests, and relationships in JSON
+ * and play them back via a step-based engine.
+ *
+ * Quick Setup
+ * -----------
+ * 1. Create data/SmartEventDirector/
+ * 2. Create index.json:
+ *    {"scenes":{"opening":"scenes/opening.json"},
+ *     "quests":{"rescueCat":"quests/rescue_cat.json"}}
+ * 3. Put JSON files in the referenced subfolders.
+ *
+ * Plugin Commands
+ * ---------------
+ *  PlayScene <sceneId> [wait]
+ *  StopScene
+ *  SkipScene
+ *  RecoverScene
+ *  ToggleDebug
+ *  SetRelationship <target> <value>
+ *  AddRelationship <target> <value>
+ *  StartQuest <questId>
+ *  CompleteQuest <questId>
+ *  FailQuest <questId>
+ *  UpdateObjective <questId> <objective> [completed]
+ *  OpenQuestLog
+ *  OpenRelationshipViewer
+ *  ReloadData  (requires Enable Hot Reload)
+ *
+ * Step Types
+ * ----------
+ *  Core: dialogue, narration, choice, wait, switch, variable
+ *  Movement: moveOneTile, moveTo, moveRoute, lockPlayer, unlockPlayer
+ *  Flow: label, jump, loop, endLoop, condition, script, comment
+ *  Visual: fade, fadeIn, fadeOut, picture, camera, weather, transition, titleCard
+ *  Audio: audio
+ *  Quest: startQuest, updateObjective, completeQuest, failQuest, questReward
+ *  Relationship: relationship
+ *  System: commonEvent, selfSwitch
+ *
+ * Scene JSON Example
+ * ------------------
+ * {"id":"opening","title":"Opening","canSkip":true,
+ *  "steps":[
+ *   {"type":"fadeOut","duration":30},
+ *   {"type":"dialogue","speaker":"Narrator","text":"Hello."},
+ *   {"type":"choice","text":"Go?","choices":[
+ *    {"text":"Yes","jump":"go"},{"text":"No","jump":"end"}]},
+ *   {"type":"label","name":"go"},
+ *   {"type":"dialogue","text":"You go."},
+ *   {"type":"jump","label":"end"},
+ *   {"type":"label","name":"end"},
+ *   {"type":"fadeIn","duration":30}
+ *  ]}
+ *
+ * Quest JSON Example
+ * ------------------
+ * {"id":"rescueCat","title":"Rescue the Cat",
+ *  "description":"Find the cat.","objectives":{
+ *   "findCat":"Search the forest.","returnCat":"Return it."},
+ *  "rewards":{"gold":100,"items":[{"id":1,"amount":1}]}}
+ *
+ * Notes
+ * -----
+ * - JSON paths in index.json are relative to the data folder.
+ * - Browser builds may restrict local file loading; test deploys.
+ * - Scenes run on the map scene.
+ * - Use the debug overlay to inspect active steps.
  */
 (() => {
   "use strict";

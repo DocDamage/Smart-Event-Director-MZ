@@ -3,6 +3,8 @@
 
   const SED = window.SED;
 
+  // Picture changes are tracked by SED.Cleanup and restored on scene stop/fail.
+
   function getScreenPicture(id) {
     return $gameScreen.picture(Number(id));
   }

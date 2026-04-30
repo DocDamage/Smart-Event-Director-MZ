@@ -24,6 +24,8 @@
     }
 
     const labels = Object.create(null);
+    const labelIndexes = Object.create(null);
+    const loopLabels = Object.create(null);
 
     scene.steps.forEach((step, index) => {
       if (!step || typeof step !== "object") {
@@ -43,7 +45,12 @@
           errors.push("Duplicate label: " + step.name);
         } else {
           labels[step.name] = true;
+          labelIndexes[step.name] = index;
         }
+      }
+
+      if (step.type === "loop" && step.label && typeof step.label === "string") {
+        loopLabels[step.label] = true;
       }
     });
 
@@ -51,17 +58,24 @@
       if (!step || !step.type) return;
 
       // Validate jump targets
-      if (step.type === "jump" && !labels[step.label]) {
-        errors.push("steps[" + index + "] jumps to missing label: " + step.label);
+      if (step.type === "jump") {
+        if (!labels[step.label]) {
+          errors.push("steps[" + index + "] jumps to missing label: " + step.label);
+        } else if (labelIndexes[step.label] <= index) {
+          SED.Logger.warn("Potential infinite loop: jump at step " + index + " jumps backward to label " + step.label);
+        }
       }
 
-      // v0.2: Validate condition jump targets
+      // v0.2+: Validate condition jump targets
       if (step.type === "condition") {
         if (step.jumpTrue && !labels[step.jumpTrue]) {
           errors.push("steps[" + index + "] condition jumpTrue to missing label: " + step.jumpTrue);
         }
         if (step.jumpFalse && !labels[step.jumpFalse]) {
           errors.push("steps[" + index + "] condition jumpFalse to missing label: " + step.jumpFalse);
+        }
+        if (step.elseJump && !labels[step.elseJump]) {
+          errors.push("steps[" + index + "] condition elseJump to missing label: " + step.elseJump);
         }
       }
 
@@ -75,7 +89,24 @@
         });
       }
 
-      // Check unknown step types (only after all v0.2 modules are registered)
+      // v0.3: Validate loop and endLoop labels
+      if (step.type === "loop") {
+        if (!step.label || typeof step.label !== "string") {
+          errors.push("steps[" + index + "] loop missing label.");
+        } else if (!labels[step.label]) {
+          errors.push("steps[" + index + "] loop points to missing label: " + step.label);
+        }
+      }
+
+      if (step.type === "endLoop") {
+        if (!step.label || typeof step.label !== "string") {
+          errors.push("steps[" + index + "] endLoop missing label.");
+        } else if (!loopLabels[step.label]) {
+          errors.push("steps[" + index + "] endLoop label does not match any loop step: " + step.label);
+        }
+      }
+
+      // Check unknown step types (only after all v0.3 modules are registered)
       if (SED.StepRegistry && !SED.StepRegistry.has(step.type)) {
         errors.push("steps[" + index + "] unknown step type: " + step.type);
       }
@@ -88,5 +119,5 @@
     validateScene
   };
 
-  SED.registerModule("SceneValidator", "0.2.0");
+  SED.registerModule("SceneValidator", "0.3.0");
 })();

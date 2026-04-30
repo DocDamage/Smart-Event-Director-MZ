@@ -12,6 +12,7 @@
     _activeHandler: null,
     _activeRuntime: null,
     _sceneTimeoutFrame: 0,
+    _transferResumeData: null,
 
     // v0.2: scene queue
     _pendingQueue: [],
@@ -22,6 +23,27 @@
 
     hasPending() {
       return this._pendingQueue.length > 0;
+    },
+
+    getState() {
+      if (!this.isBusy()) return null;
+      return {
+        sceneId: this._scene.sceneId,
+        queueIndex: this._queue.currentIndex(),
+        contextLocals: SED.Util.cloneJson(this._context.local || {}),
+        activeStepType: this._activeStep ? this._activeStep.type : null,
+        activeStepData: this._activeStep ? SED.Util.cloneJson(this._activeStep) : null,
+        runtimeData: this._activeRuntime ? SED.Util.cloneJson(this._activeRuntime) : null
+      };
+    },
+
+    getSceneStats() {
+      return {
+        sceneId: this._scene ? this._scene.sceneId : null,
+        queueIndex: this._queue ? this._queue.currentIndex() : 0,
+        totalSteps: this._scene ? this._scene.steps.length : 0,
+        elapsedFrames: this._scene ? Graphics.frameCount - this._context.startedFrame : 0
+      };
     },
 
     play(sceneId, options) {
@@ -54,6 +76,8 @@
         return false;
       }
 
+      SED.Cleanup.snapshot();
+
       this._state = "running";
       this._scene = SED.Util.cloneJson(scene);
       this._queue = new SED.StepQueue(this._scene.steps);
@@ -71,6 +95,28 @@
       return true;
     },
 
+    resume(sceneId, queueIndex) {
+      if (this.isBusy()) {
+        SED.Logger.warn("Cannot resume: runner is busy.");
+        return false;
+      }
+      const success = this.play(sceneId, {});
+      if (!success) return false;
+      this._queue._index = Math.max(0, Math.min(queueIndex, this._scene.steps.length));
+      SED.Logger.info("Resumed scene at step:", this._queue._index);
+      return true;
+    },
+
+    resumeFromSave() {
+      const data = SED.Save && SED.Save.getResumeData ? SED.Save.getResumeData() : null;
+      if (!data) return false;
+      const result = this.resume(data.sceneId, data.queueIndex || 0);
+      if (result && SED.Save.clearResumeData) {
+        SED.Save.clearResumeData();
+      }
+      return result;
+    },
+
     stop(reason) {
       reason = reason || "stopped";
 
@@ -82,6 +128,7 @@
         }
       }
 
+      SED.Cleanup.restore();
       SED.Logger.info("Scene stopped:", reason);
       this._forceIdle();
     },
@@ -200,6 +247,8 @@
     _fail(error) {
       SED.Logger.error("Scene failed:", error.message);
 
+      SED.Cleanup.restore();
+
       if (SED.Failsafe) {
         SED.Failsafe.recover(error.message);
       } else {
@@ -208,6 +257,8 @@
     },
 
     _forceIdle() {
+      SED.Cleanup.clear();
+
       this._state = "idle";
       this._scene = null;
       this._queue = null;
@@ -216,9 +267,42 @@
       this._activeHandler = null;
       this._activeRuntime = null;
       this._sceneTimeoutFrame = 0;
+      this._transferResumeData = null;
+    },
+
+    _onTransferReserved(mapId, x, y, d, fadeType) {
+      SED.Logger.info("Map transfer reserved during scene:", this._scene.sceneId, "-> map", mapId);
+      this._transferResumeData = {
+        sceneId: this._scene.sceneId,
+        queueIndex: this._queue.currentIndex(),
+        contextLocals: SED.Util.cloneJson(this._context.local || {})
+      };
+    }
+  };
+
+  const _Game_Player_reserveTransfer = Game_Player.prototype.reserveTransfer;
+  Game_Player.prototype.reserveTransfer = function(mapId, x, y, d, fadeType) {
+    _Game_Player_reserveTransfer.apply(this, arguments);
+    if (SED.Runner && SED.Runner.isBusy()) {
+      SED.Runner._onTransferReserved(mapId, x, y, d, fadeType);
+    }
+  };
+
+  const _Scene_Map_onTransferEnd = Scene_Map.prototype.onTransferEnd;
+  Scene_Map.prototype.onTransferEnd = function() {
+    _Scene_Map_onTransferEnd.apply(this, arguments);
+    if (SED.Runner && SED.Runner._transferResumeData) {
+      const data = SED.Runner._transferResumeData;
+      SED.Runner._transferResumeData = null;
+      SED.Runner.resume(data.sceneId, data.queueIndex);
+      if (SED.Runner._context && data.contextLocals) {
+        for (const key in data.contextLocals) {
+          SED.Runner._context.setLocal(key, data.contextLocals[key]);
+        }
+      }
     }
   };
 
   SED.Runner = Runner;
-  SED.registerModule("Runner", "0.2.0");
+  SED.registerModule("Runner", "0.4.0");
 })();

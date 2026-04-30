@@ -30,6 +30,20 @@
     return Object.keys(scenes);
   }
 
+  function unregister(sceneId) {
+    delete scenes[String(sceneId)];
+  }
+
+  function reload(scene) {
+    const id = String(scene.sceneId || "");
+
+    if (id) {
+      unregister(id);
+    }
+
+    register(scene);
+  }
+
   function clear() {
     for (const key of Object.keys(scenes)) {
       delete scenes[key];
@@ -38,6 +52,8 @@
 
   SED.SceneRegistry = {
     register,
+    unregister,
+    reload,
     get,
     has,
     list,

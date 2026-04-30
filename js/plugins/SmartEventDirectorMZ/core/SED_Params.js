@@ -31,8 +31,46 @@
     sceneSkipKey: number("Scene Skip Key", 27),       // 27 = Escape keyCode
     enableDebugOverlay: bool("Enable Debug Overlay", false),
     allowSceneQueue: bool("Allow Scene Queue", false),
-    defaultSkipPrevention: bool("Default Can Skip", true)
+    defaultSkipPrevention: bool("Default Can Skip", true),
+    enableRelationshipViewer: bool("Enable Relationship Viewer", false),
+
+    // v0.4 params
+    enableQuestLog: bool("Enable Quest Log", true),
+
+    // v0.4: Quest toast config
+    questToastPosition: text("Quest Toast Position", "topRight"),
+    questToastDuration: number("Quest Toast Duration", 180),
+    questToastAnimation: text("Quest Toast Animation", "slide"),
+    questToastSound: text("Quest Toast Sound", ""),
+
+    // v0.4: Keybinds
+    sceneSkipKeyName: text("Scene Skip Key Name", "cancel"),
+    dialogueLogKeyName: text("Dialogue Log Key Name", "pageup"),
+
+    // v0.4: Developer tooling
+    hotReload: bool("Enable Hot Reload", false)
   };
 
-  SED.registerModule("Params", "0.2.0");
+  function validate() {
+    const errors = [];
+
+    if (!SED.Params.dataIndexPath || typeof SED.Params.dataIndexPath !== "string") {
+      errors.push("Data Index Path must be a non-empty string.");
+    }
+
+    if (!Number.isFinite(SED.Params.defaultSceneTimeout) || SED.Params.defaultSceneTimeout < 0) {
+      errors.push("Default Scene Timeout must be a non-negative number.");
+    }
+
+    if (errors.length > 0 && SED.Logger) {
+      SED.Logger.error("Plugin parameter validation failed:", errors.join("; "));
+    }
+
+    return errors.length === 0;
+  }
+
+  SED.Params.validate = validate;
+  SED.Params._raw = raw;
+
+  SED.registerModule("Params", "0.4.0");
 })();

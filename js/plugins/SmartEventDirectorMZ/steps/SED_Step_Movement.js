@@ -33,17 +33,35 @@
       runtime.wait = step.wait !== false;
       runtime.timeoutFrame = Graphics.frameCount + Number(step.timeoutFrames || 120);
 
+      if (character instanceof Game_Event) {
+        runtime.initialPage = character._pageIndex;
+      }
+
       character.moveStraight(direction);
     },
 
     update(step, context, runtime) {
       if (!runtime.wait) return true;
 
+      const character = runtime.character;
+      if (character instanceof Game_Event) {
+        if (character._erased || !$gameMap.event(character.eventId())) {
+          if (step.failBehavior === "continue") {
+            SED.Logger.warn("Character erased or missing; continuing.");
+            return true;
+          }
+          throw new Error("Character erased or missing during movement.");
+        }
+        if (character._pageIndex !== runtime.initialPage) {
+          SED.Logger.warn("Event page changed mid-scene: event " + step.eventId);
+        }
+      }
+
       if (Graphics.frameCount > runtime.timeoutFrame) {
         throw new Error("moveOneTile timeout.");
       }
 
-      return !runtime.character.isMoving();
+      return !character.isMoving();
     }
   });
 
@@ -73,10 +91,27 @@
       runtime.lastX = character.x;
       runtime.lastY = character.y;
       runtime.stuckFrames = 0;
+
+      if (character instanceof Game_Event) {
+        runtime.initialPage = character._pageIndex;
+      }
     },
 
     update(step, context, runtime) {
       const character = runtime.character;
+
+      if (character instanceof Game_Event) {
+        if (character._erased || !$gameMap.event(character.eventId())) {
+          if (step.failBehavior === "continue") {
+            SED.Logger.warn("Character erased or missing; continuing.");
+            return true;
+          }
+          throw new Error("Character erased or missing during movement.");
+        }
+        if (character._pageIndex !== runtime.initialPage) {
+          SED.Logger.warn("Event page changed mid-scene: event " + step.eventId);
+        }
+      }
 
       if (isAt(character, step.x, step.y)) {
         return true;

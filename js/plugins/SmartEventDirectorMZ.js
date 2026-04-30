@@ -1,6 +1,6 @@
 /*:
  * @target MZ
- * @plugindesc v0.2 Smart Event Director MZ - modular cutscene/story runner.
+ * @plugindesc v0.4 Smart Event Director MZ - modular cutscene/story runner.
  * @author Smart Event Director MZ
  *
  * @param Debug Mode
@@ -36,13 +36,56 @@
  * @type boolean
  * @default true
  *
+ * @param Enable Quest Log
+ * @type boolean
+ * @default true
+ * @desc Adds a Quest Log command to the main menu.
+ *
+ * @param Enable Relationship Viewer
+ * @type boolean
+ * @default false
+ * @desc Adds a Relationships command to the main menu.
+ *
+ * @param Quest Toast Position
+ * @type string
+ * @default topRight
+ * @desc Toast position: topLeft, topRight, bottomLeft, bottomRight, center
+ *
+ * @param Quest Toast Duration
+ * @type number
+ * @default 180
+ * @desc Frames the toast stays visible (60fps)
+ *
+ * @param Quest Toast Animation
+ * @type string
+ * @default slide
+ * @desc Animation type: slide, fade, none
+ *
+ * @param Quest Toast Sound
+ * @type string
+ * @default
+ * @desc SE filename to play on toast (leave empty for none)
+ *
+ * @param Scene Skip Key Name
+ * @type string
+ * @default cancel
+ * @desc RPG Maker key name for skipping scenes (cancel, escape, shift, control)
+ *
+ * @param Dialogue Log Key Name
+ * @type string
+ * @default pageup
+ * @desc RPG Maker key name for toggling dialogue log (pageup, pagedown, shift)
+ *
+ * @param Enable Hot Reload
+ * @type boolean
+ * @default false
+ * @desc Allow reloading JSON data at runtime via ReloadData plugin command.
+ *
  * @command PlayScene
  * @text Play Scene
- *
  * @arg sceneId
  * @type string
  * @text Scene ID
- *
  * @arg wait
  * @type boolean
  * @default true
@@ -59,8 +102,64 @@
  *
  * @command ToggleDebug
  * @text Toggle Debug Overlay
+ *
+ * @command SetRelationship
+ * @text Set Relationship Points
+ * @arg target
+ * @type string
+ * @text Target Character
+ * @arg value
+ * @type number
+ * @default 0
+ * @text Points
+ *
+ * @command AddRelationship
+ * @text Add Relationship Points
+ * @arg target
+ * @type string
+ * @text Target Character
+ * @arg value
+ * @type number
+ * @default 1
+ * @text Points to Add
+ *
+ * @command StartQuest
+ * @text Start Quest
+ * @arg questId
+ * @type string
+ * @text Quest ID
+ *
+ * @command CompleteQuest
+ * @text Complete Quest
+ * @arg questId
+ * @type string
+ * @text Quest ID
+ *
+ * @command FailQuest
+ * @text Fail Quest
+ * @arg questId
+ * @type string
+ * @text Quest ID
+ *
+ * @command UpdateObjective
+ * @text Update Objective
+ * @arg questId
+ * @type string
+ * @text Quest ID
+ * @arg objective
+ * @type string
+ * @text Objective Key
+ * @arg completed
+ * @type boolean
+ * @default true
+ * @text Completed
+ *
+ * @command OpenQuestLog
+ * @text Open Quest Log
+ *
+ * @command OpenRelationshipViewer
+ * @text Open Relationship Viewer
  */
-
 (() => {
   "use strict";
 
@@ -89,12 +188,14 @@
     "runtime/SED_StepContext.js",
     "runtime/SED_Locks.js",
     "runtime/SED_Save.js",
+    "runtime/SED_Cleanup.js",
     "runtime/SED_Failsafe.js",
-
-    // v0.2: Debug overlay before runner
     "runtime/SED_DebugOverlay.js",
-
+    "runtime/SED_DialogueLog.js",
+    "runtime/SED_TextEffects.js",
+    "runtime/SED_InputBuffer.js",
     "runtime/SED_Runner.js",
+    "runtime/SED_Profiler.js",
 
     "steps/SED_Step_LabelJump.js",
     "steps/SED_Step_Wait.js",
@@ -102,16 +203,35 @@
     "steps/SED_Step_Choice.js",
     "steps/SED_Step_SwitchVariable.js",
     "steps/SED_Step_Fade.js",
+    "steps/SED_Step_Transition.js",
     "steps/SED_Step_Movement.js",
     "steps/SED_Step_Locks.js",
-
-    // v0.2 steps
     "steps/SED_Step_CommonEvent.js",
     "steps/SED_Step_Condition.js",
     "steps/SED_Step_SelfSwitch.js",
     "steps/SED_Step_Audio.js",
     "steps/SED_Step_Picture.js",
-    "steps/SED_Step_Camera.js"
+    "steps/SED_Step_Camera.js",
+    "steps/SED_Step_Weather.js",
+
+    "data/SED_QuestRegistry.js",
+    "runtime/SED_QuestState.js",
+    "runtime/SED_RelationshipState.js",
+    "runtime/SED_RelationshipViewer.js",
+    "steps/SED_Step_Quest.js",
+    "steps/SED_Step_Relationship.js",
+    "runtime/SED_QuestToast.js",
+    "runtime/SED_QuestTracker.js",
+    "runtime/SED_QuestLog.js",
+
+    "steps/SED_Step_Script.js",
+    "steps/SED_Step_Comment.js",
+    "steps/SED_Step_Loop.js",
+    "steps/SED_Step_MoveRoute.js",
+    "steps/SED_Step_TitleCard.js",
+
+    "runtime/SED_HotReload.js",
+    "runtime/SED_PluginCommands.js"
   ];
 
   function moduleBasePath() {
@@ -139,11 +259,15 @@
         await SED.DataLoader.loadAll();
       }
 
+      if (SED.Params && SED.Params.validate) {
+        SED.Params.validate();
+      }
+
       SED.ready = true;
       if (SED.Logger) SED.Logger.info("Smart Event Director ready.");
     } catch (error) {
       SED.bootError = error;
-      SED.ready = true; // Prevent permanent boot lock.
+      SED.ready = true;
       console.error(error);
     }
   }
@@ -156,48 +280,6 @@
     return baseReady && SED.ready;
   };
 
-  PluginManager.registerCommand(PLUGIN_NAME, "PlayScene", function(args) {
-    const sceneId = String(args.sceneId || "");
-    const wait = String(args.wait || "true") === "true";
-
-    if (!sceneId) {
-      console.error("SED PlayScene missing sceneId.");
-      return;
-    }
-
-    if (!SED.Runner) {
-      console.error("SED Runner is not loaded.");
-      return;
-    }
-
-    SED.Runner.play(sceneId, {
-      interpreter: this,
-      callerEventId: typeof this.eventId === "function" ? this.eventId() : 0
-    });
-
-    if (wait && this.setWaitMode) {
-      this.setWaitMode("sedScene");
-    }
-  });
-
-  PluginManager.registerCommand(PLUGIN_NAME, "StopScene", function() {
-    if (SED.Runner) SED.Runner.stop("pluginCommand");
-  });
-
-  // v0.2: Skip scene plugin command
-  PluginManager.registerCommand(PLUGIN_NAME, "SkipScene", function() {
-    if (SED.Runner) SED.Runner.skip();
-  });
-
-  PluginManager.registerCommand(PLUGIN_NAME, "RecoverScene", function() {
-    if (SED.Failsafe) SED.Failsafe.recover("pluginCommand");
-  });
-
-  // v0.2: Toggle debug overlay plugin command
-  PluginManager.registerCommand(PLUGIN_NAME, "ToggleDebug", function() {
-    if (SED.DebugOverlay) SED.DebugOverlay.toggle();
-  });
-
   const _Game_Interpreter_updateWaitMode = Game_Interpreter.prototype.updateWaitMode;
   Game_Interpreter.prototype.updateWaitMode = function() {
     if (this._waitMode === "sedScene") {
@@ -207,7 +289,6 @@
       this._waitMode = "";
       return false;
     }
-
     return _Game_Interpreter_updateWaitMode.apply(this, arguments);
   };
 
@@ -219,13 +300,23 @@
       SED.Runner.update();
     }
 
-    // v0.2: Debug overlay update
     if (SED.DebugOverlay && SED.DebugOverlay.update) {
       SED.DebugOverlay.update();
     }
+
+    if (SED.QuestToast && SED.QuestToast.update) {
+      SED.QuestToast.update();
+    }
+
+    if (SED.QuestTracker && SED.QuestTracker.update) {
+      SED.QuestTracker.update();
+    }
+
+    if (SED.DialogueLog && SED.DialogueLog.update) {
+      SED.DialogueLog.update();
+    }
   };
 
-  // v0.2: Draw debug overlay after all other rendering
   const _Scene_Map_postUpdate = Scene_Map.prototype.postUpdate;
   Scene_Map.prototype.postUpdate = function() {
     _Scene_Map_postUpdate.apply(this, arguments);
@@ -233,9 +324,20 @@
     if (SED.DebugOverlay && SED.DebugOverlay.draw) {
       SED.DebugOverlay.draw();
     }
+
+    if (SED.QuestToast && SED.QuestToast.draw) {
+      SED.QuestToast.draw();
+    }
+
+    if (SED.QuestTracker && SED.QuestTracker.draw) {
+      SED.QuestTracker.draw();
+    }
+
+    if (SED.DialogueLog && SED.DialogueLog.draw) {
+      SED.DialogueLog.draw();
+    }
   };
 
-  // v0.2: Scene skip key detection
   const _Scene_Map_updateScene = Scene_Map.prototype.updateScene;
   Scene_Map.prototype.updateScene = function() {
     _Scene_Map_updateScene.apply(this, arguments);
@@ -243,11 +345,10 @@
     if (!SED.Params || !SED.Params.enableSceneSkip) return;
     if (!SED.Runner || !SED.Runner.isBusy()) return;
     if (!SED.Runner._scene) return;
-
-    // Only skip if canSkip is not explicitly false
     if (SED.Runner._scene.canSkip === false) return;
 
-    if (Input.isTriggered("escape") || Input.isTriggered("cancel")) {
+    const skipKey = SED.Params && SED.Params.sceneSkipKeyName ? SED.Params.sceneSkipKeyName : "cancel";
+    if (Input.isTriggered(skipKey)) {
       SED.Runner.skip();
     }
   };

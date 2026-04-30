@@ -1,0 +1,82 @@
+{
+  "schema": "SED_SCENE_1",
+  "sceneId": "example_v04_features",
+  "title": "v0.4 Feature Demo",
+  "canSkip": true,
+  "timeoutFrames": 3600,
+  "steps": [
+    {
+      "type": "comment",
+      "text": "This scene demonstrates v0.4 features: text interpolation, script step, loop, moveRoute, and elseJump."
+    },
+    {
+      "type": "lockPlayer"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "System",
+      "text": "Current gold: \\v[1] | Party leader: \\p[1]"
+    },
+    {
+      "type": "script",
+      "code": "$gameVariables.setValue(10, 3);",
+      "wait": true
+    },
+    {
+      "type": "dialogue",
+      "speaker": "System",
+      "text": "Variable 10 is now \\v[10]."
+    },
+    {
+      "type": "label",
+      "name": "repeatStart"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Looper",
+      "text": "Loop iteration!"
+    },
+    {
+      "type": "script",
+      "code": "const current = $gameVariables.value(10); $gameVariables.setValue(10, current - 1);",
+      "wait": true
+    },
+    {
+      "type": "condition",
+      "operator": "variableGte",
+      "variableId": 10,
+      "value": 1,
+      "jumpTrue": "repeatStart",
+      "elseJump": "loopEnd"
+    },
+    {
+      "type": "label",
+      "name": "loopEnd"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "System",
+      "text": "Loop finished. Now testing moveRoute."
+    },
+    {
+      "type": "moveRoute",
+      "eventId": -1,
+      "commands": [
+        { "code": "turnRight" },
+        { "code": "stepForward" },
+        { "code": "turnDown" },
+        { "code": "stepForward" }
+      ],
+      "wait": true,
+      "timeoutFrames": 180
+    },
+    {
+      "type": "dialogue",
+      "speaker": "System",
+      "text": "Move route complete. v0.4 demo finished!"
+    },
+    {
+      "type": "unlockPlayer"
+    }
+  ]
+}

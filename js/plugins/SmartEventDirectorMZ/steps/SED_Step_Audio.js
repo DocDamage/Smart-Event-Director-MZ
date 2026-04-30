@@ -3,6 +3,8 @@
 
   const SED = window.SED;
 
+  // Audio changes are tracked by SED.Cleanup and restored on scene stop/fail.
+
   function playBgm(name, volume, pitch, pan) {
     if (!name) return;
     AudioManager.playBgm({ name: String(name), volume: Number(volume || 90), pitch: Number(pitch || 100), pan: Number(pan || 0) });

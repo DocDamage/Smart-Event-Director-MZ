@@ -40,11 +40,11 @@
           return false;
         }
 
-        const options = step.options.map(option => String(option.text || ""));
+        const options = step.options.map(option => SED.Util.interpolateText(String(option.text || "")));
         const defaultIndex = Number(step.defaultIndex || 0);
 
         if (step.prompt) {
-          $gameMessage.add(String(step.prompt));
+          $gameMessage.add(SED.Util.interpolateText(step.prompt));
         }
 
         $gameMessage.setChoices(options, defaultIndex, cancelIndex(step));
@@ -88,5 +88,5 @@
     }
   });
 
-  SED.registerModule("Step_Choice", "0.1.0");
+  SED.registerModule("Step_Choice", "0.4.0");
 })();

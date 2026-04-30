@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+"""Check line counts of SED plugin JS files.
+
+For full validation (including JSON data), run: python tools/run_all_checks.py
+"""
+
 from pathlib import Path
 
 ROOT = Path("js/plugins/SmartEventDirectorMZ")

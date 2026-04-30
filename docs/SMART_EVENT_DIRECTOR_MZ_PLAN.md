@@ -57,6 +57,167 @@ That is what keeps the project modular, testable, and easy for an LLM to code wi
 
 ---
 
+## Implementation Progress
+
+### v0.1 — Core Engine ✅ (Complete)
+
+- [x] Scene loading via XHR JSON
+- [x] Scene registry (SED_SceneRegistry.js)
+- [x] Scene validation (SED_SceneValidator.js)
+- [x] Scene runner (SED_Runner.js) — frame-based, no switch/case
+- [x] Step registry (SED_StepRegistry.js)
+- [x] Plugin commands: PlayScene, StopScene, RecoverScene
+- [x] Player lock (SED_Locks.js) — reference-counted
+- [x] Dialogue / Narration step (SED_Step_Dialogue.js)
+- [x] Choice step with memory (SED_Step_Choice.js)
+- [x] Wait step (SED_Step_Wait.js)
+- [x] Switch / Variable step (SED_Step_SwitchVariable.js)
+- [x] Fade step (fadeOut/fadeIn) (SED_Step_Fade.js)
+- [x] Movement (moveOneTile/moveTo) (SED_Step_Movement.js)
+- [x] Label / Jump step (SED_Step_LabelJump.js)
+- [x] Save/load support (SED_Save.js)
+- [x] Failsafe recovery (SED_Failsafe.js)
+- [x] Module loader boot sequence
+- [x] Game_Interpreter wait-mode patch (sedScene)
+- [x] Scene_Map update patch
+- [x] ALL files under 450 line warning threshold
+
+### v0.2 — Cinematic & Condition Features ✅ (Complete)
+
+- [x] Common event step (SED_Step_CommonEvent.js)
+- [x] Condition step (SED_Step_Condition.js)
+- [x] Self switch step (SED_Step_SelfSwitch.js)
+- [x] Audio step (SED_Step_Audio.js)
+- [x] Picture step (SED_Step_Picture.js)
+- [x] Camera step (SED_Step_Camera.js)
+- [x] Debug overlay (SED_DebugOverlay.js)
+- [x] Scene skip with Escape key
+- [x] Scene queue (optional)
+- [x] Plugin commands: SkipScene, ToggleDebug
+- [x] Example scenes: cinematic, picture_demo
+
+### v0.3 — Quest & Relationship System ✅ (Complete)
+
+- [x] Quest registry (SED_QuestRegistry.js)
+- [x] Quest state tracking (SED_QuestState.js)
+- [x] Relationship state (SED_RelationshipState.js)
+- [x] Quest step handlers: startQuest, updateObjective, completeQuest, failQuest, questReward (SED_Step_Quest.js)
+- [x] Relationship step handler (SED_Step_Relationship.js)
+- [x] Quest condition operators: questActive, questCompleted, questFailed, questObjectiveDone
+- [x] Relationship condition operators: relationshipGte, relationshipLte, relationshipIs
+- [x] Quest toast notifications (SED_QuestToast.js)
+- [x] Quest tracker HUD (SED_QuestTracker.js)
+- [x] Save/load integration for quest and relationship state
+- [x] Plugin commands: SetRelationship, AddRelationship, StartQuest, CompleteQuest, FailQuest, UpdateObjective
+- [x] Example quest data (tutorial_quest, side_quest)
+- [x] Example scenes (quest_scene, relationship_scene)
+
+### v0.4 Roadmap (Planned)
+
+- [ ] Command buffering (choose-ahead dialogue)
+- [ ] Dialogue log (scrollable text history)
+- [ ] Expanded TMX/Tiled map integration
+- [ ] Better move route support
+- [ ] Common event waiting improvements
+
+---
+
+## v1.0 Release Roadmap
+
+### 💪 Stability & Hardening
+
+- [ ] Save during active scene — store queue position, context, active step state so saving mid-cutscene doesn't lose progress
+- [ ] Load mid-scene recovery — restore running scene when loading a save made mid-cutscene
+- [ ] Cross-map scenes — handle map transfers mid-scene (movement steps continuing on new map)
+- [ ] Event page change detection — warn/log when an event's page changes mid-scene
+- [ ] Erased event handling — gracefully handle `$gameMap.eraseEvent()` during movement steps
+- [ ] Plugin parameter validation — warn on boot if parameters are misconfigured
+- [ ] Missing file recovery — better error messages for missing scenes/quests referenced in index
+- [ ] Circular jump detection — detect infinite jump loops at boot/validation time
+
+### 🎬 Core Feature Gaps
+
+- [ ] Move route step — full RPG Maker move route commands (`SED_Step_MoveRoute.js`)
+- [ ] Script/eval step — execute arbitrary JavaScript from step JSON
+- [ ] Comment step — no-op step for scene documentation
+- [ ] Condition else/jump — `elseJump` field on condition steps to avoid label pairs
+- [ ] Loop step — `loop` / `endLoop` step types for repeating sections
+- [ ] Common event async wait — wait for a common event to finish before continuing
+- [ ] Text interpolation — `\v[1]`, `\n[1]` variable/name code support in dialogue text
+
+### 🎨 UI/UX Improvements
+
+- [ ] Dialogue log — scrollable text history (press a key to review past lines)
+- [ ] Command buffering — confirm key chooses next dialogue option in advance
+- [ ] Text speed control — per-scene or per-step text reveal speed
+- [ ] Auto-advance mode — dialogue auto-progresses after configurable delay
+- [ ] Typewriter effect — character-by-character text reveal
+- [ ] Quest log window — full quest journal accessible from the menu
+- [ ] Quest notification config — configurable toast position, animation, sound
+- [ ] Relationship viewer — screen showing character relationship values
+- [ ] Scene title card — optional title/name display at scene start
+
+### 📖 Documentation & Tutorials
+
+- [ ] Plugin help file — full RPG Maker help format docs with all commands, params, step types
+- [ ] Step type reference — markdown doc listing every step type with JSON schema and examples
+- [ ] Getting started guide — step-by-step: create a scene, add dialogue, add a choice, run it
+- [ ] Quest system guide — define quests, objectives, rewards with examples
+- [ ] Condition operator reference — complete list of all operators with examples
+- [ ] Example project — small RPG Maker MZ project with maps, events, and demo scenes
+- [ ] README overhaul — comprehensive README with feature list, quickstart, API reference
+
+### 🧪 Testing Checklist
+
+- [ ] Boot test — plugin loads without errors
+- [ ] Dialogue test — text, speaker name, face images all work
+- [ ] Choice test — options appear, branches work, choice saves/loads
+- [ ] Movement test — events move, timeout works, failBehavior works
+- [ ] Fade test — fade in/out with wait/no-wait
+- [ ] Audio test — BGM/BGS/SE/ME play, stop, fade
+- [ ] Picture test — show, move, erase, tint
+- [ ] Camera test — scroll, focus, shake, flash, tint
+- [ ] Condition test — all condition operators evaluate correctly
+- [ ] Quest test — start, update, complete, fail, reward
+- [ ] Relationship test — add/set points, conditions evaluate
+- [ ] Scene skip test — escape skips, canSkip:false prevents skip
+- [ ] Save/load test — save mid-scene, load old saves without SED data
+- [ ] Failsafe test — missing event, timeout, bad JSON all recover gracefully
+- [ ] Plugin conflict test — test with VisuStella, Yanfly, Galv, other common plugins
+- [ ] Stress test — run 50+ scenes consecutively, check memory
+
+### 🚀 Performance & Polish
+
+- [ ] Profiled runner — ensure update loop stays under 1ms per frame
+- [ ] Picture cleanup — ensure all pictures erased on scene stop/fail
+- [ ] Audio cleanup — ensure audio state restored on scene stop/fail
+- [ ] Memory leak check — verify no leaked references after dozens of plays
+- [ ] Scene transition effects — crossfade between scenes
+- [ ] Configurable keybinds — customization of skip/back/log keys
+
+### 🔧 Developer Tooling
+
+- [ ] JSON schema — publish JSON Schema for IDE autocomplete on scene/quest files
+- [ ] Scene validator CLI — extend check_sed_lines.py to validate all JSON files in data/
+- [ ] Scene template generator — script to generate a minimal scene JSON
+- [ ] Hot-reload mode — debug param to re-load JSON files on each play (no restart needed)
+
+### Summary: v1.0 Target
+
+| Category | Items | Priority |
+|---|---|---|
+| Stability & Hardening | 8 | 🔴 Critical |
+| Core Feature Gaps | 7 | 🔴 Critical |
+| UI/UX Improvements | 9 | 🟡 High |
+| Documentation | 7 | 🟡 High |
+| Testing | 16 | 🔴 Critical |
+| Performance | 6 | 🟢 Medium |
+| Tooling | 4 | 🟢 Medium |
+| **Total** | **57** | |
+
+---
+
+
 ## Version 0.1 Scope
 
 Build this first:

@@ -1,0 +1,20 @@
+{
+  "schema": "SED_QUEST_1",
+  "questId": "tutorial_quest",
+  "title": "First Steps",
+  "description": "Learn the basics of adventuring.",
+  "objectives": [
+    {
+      "id": "talk_to_mira",
+      "text": "Talk to Mira"
+    },
+    {
+      "id": "collect_herbs",
+      "text": "Collect 3 Healing Herbs"
+    },
+    {
+      "id": "return_to_mira",
+      "text": "Return to Mira"
+    }
+  ]
+}

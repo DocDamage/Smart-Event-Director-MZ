@@ -53,6 +53,37 @@
       return $gameParty.gold() >= Number(step.value || 0);
     }
 
+    // ===== v0.3: Quest operators =====
+    if (operator === "questActive") {
+      return SED.QuestState.isActive(String(step.questId || ""));
+    }
+
+    if (operator === "questCompleted") {
+      return SED.QuestState.isCompleted(String(step.questId || ""));
+    }
+
+    if (operator === "questFailed") {
+      return SED.QuestState.isFailed(String(step.questId || ""));
+    }
+
+    if (operator === "questObjectiveDone") {
+      const qs = SED.QuestState._getRawState(String(step.questId || ""));
+      return !!(qs.objectives[String(step.objective || "")]);
+    }
+
+    // ===== v0.3: Relationship operators =====
+    if (operator === "relationshipGte") {
+      return SED.RelationshipState.getPoints(String(step.target || "")) >= Number(step.value || 0);
+    }
+
+    if (operator === "relationshipLte") {
+      return SED.RelationshipState.getPoints(String(step.target || "")) <= Number(step.value || 0);
+    }
+
+    if (operator === "relationshipIs") {
+      return SED.RelationshipState.getPoints(String(step.target || "")) === Number(step.value || 0);
+    }
+
     return false;
   }
 
@@ -63,7 +94,9 @@
       const errors = [];
       const validOperators = [
         "switchIs", "variableIs", "variableGte", "variableLte",
-        "choiceIs", "scenePlayed", "sceneCompleted", "hasItem", "goldGte"
+        "choiceIs", "scenePlayed", "sceneCompleted", "hasItem", "goldGte",
+        "questActive", "questCompleted", "questFailed", "questObjectiveDone",
+        "relationshipGte", "relationshipLte", "relationshipIs"
       ];
 
       if (validOperators.indexOf(step.operator) === -1) {
@@ -88,6 +121,8 @@
         context.jump(step.jumpTrue);
       } else if (!result && step.jumpFalse) {
         context.jump(step.jumpFalse);
+      } else if (!result && step.elseJump) {
+        context.jump(step.elseJump);
       }
     },
 
@@ -96,5 +131,5 @@
     }
   });
 
-  SED.registerModule("Step_Condition", "0.2.0");
+  SED.registerModule("Step_Condition", "0.3.0");
 })();

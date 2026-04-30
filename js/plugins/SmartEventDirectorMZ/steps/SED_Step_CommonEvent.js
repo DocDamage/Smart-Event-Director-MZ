@@ -29,6 +29,12 @@
       if (!interpreter) {
         throw new Error("commonEvent step requires a Game_Interpreter context.");
       }
+
+      runtime.snapshot = {
+        list: interpreter._list,
+        index: interpreter._index,
+        indent: interpreter._indent
+      };
     },
 
     update(step, context, runtime) {
@@ -65,9 +71,11 @@
     cancel(step, context, runtime) {
       const interpreter = context.interpreter;
 
-      if (interpreter) {
-        interpreter._list = null;
-        interpreter._index = 0;
+      if (interpreter && runtime.snapshot) {
+        interpreter._list = runtime.snapshot.list;
+        interpreter._index = runtime.snapshot.index;
+        interpreter._indent = runtime.snapshot.indent;
+        runtime.snapshot = null;
       }
     }
   });

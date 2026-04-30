@@ -47,6 +47,40 @@
       lines.push("Idle");
     }
 
+    // v0.3: Show quest and relationship state
+    if (SED.QuestState) {
+      const activeQuests = SED.QuestState.getActiveQuests();
+      if (activeQuests.length > 0) {
+        lines.push("--- Active Quests ---");
+        activeQuests.forEach(function(q) {
+          const qs = SED.QuestState._getRawState(q.questId);
+          if (qs) {
+            const doneCount = Object.keys(qs.objectives).filter(function(k) { return qs.objectives[k]; }).length;
+            const totalCount = Object.keys(qs.objectives).length;
+            lines.push(q.title + " (" + doneCount + "/" + totalCount + ")");
+          }
+        });
+      }
+    }
+
+    if (SED.RelationshipState) {
+      const rels = SED.RelationshipState.getRelationships();
+      const relKeys = Object.keys(rels);
+      if (relKeys.length > 0) {
+        lines.push("--- Relationships ---");
+        relKeys.forEach(function(key) {
+          lines.push(key + ": " + rels[key]);
+        });
+      }
+    }
+
+    if (SED.Profiler && SED.Profiler.getFrameStats) {
+      const stats = SED.Profiler.getFrameStats();
+      if (stats && stats.avgFrameTime) {
+        lines.push("Avg Frame: " + stats.avgFrameTime.toFixed(2) + " ms");
+      }
+    }
+
     textCache = lines;
   }
 

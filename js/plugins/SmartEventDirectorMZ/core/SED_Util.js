@@ -48,13 +48,32 @@
     return JSON.parse(JSON.stringify(value));
   }
 
+  function interpolateText(text) {
+    if (typeof text !== "string") return String(text || "");
+
+    return text
+      .replace(/\\v\[(\d+)\]/g, function(match, n) {
+        return String($gameVariables.value(Number(n)));
+      })
+      .replace(/\\n\[(\d+)\]/g, function(match, n) {
+        const actor = $dataActors[Number(n)];
+        return actor ? actor.name : "";
+      })
+      .replace(/\\p\[(\d+)\]/g, function(match, n) {
+        const actor = $gameParty.members()[Number(n) - 1];
+        return actor ? actor.name() : "";
+      })
+      .replace(/\\\\/g, "\\");
+  }
+
   SED.Util = {
     toBool,
     toNumber,
     characterFromId,
     directionFromText,
-    cloneJson
+    cloneJson,
+    interpolateText
   };
 
-  SED.registerModule("Util", "0.1.0");
+  SED.registerModule("Util", "0.4.0");
 })();

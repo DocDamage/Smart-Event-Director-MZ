@@ -1,6 +1,6 @@
 /*:
  * @target MZ
- * @plugindesc v0.4 Smart Event Director MZ - modular cutscene/story runner.
+ * @plugindesc v1.0 Smart Event Director MZ - modular cutscene/story runner.
  * @author Smart Event Director MZ
  *
  * @param Debug Mode

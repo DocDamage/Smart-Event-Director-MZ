@@ -38,7 +38,7 @@
 
   function toJSON() {
     const sedData = {
-      version: 3,
+      version: 4,
       playedScenes: state.playedScenes,
       completedScenes: state.completedScenes,
       choices: state.choices,
@@ -62,6 +62,11 @@
     // Achievement state
     if (SED.AchievementState && SED.AchievementState.toJSON) {
       sedData.achievements = SED.AchievementState.toJSON();
+    }
+
+    // v2.0: SkipRead history
+    if (SED.SkipRead && SED.SkipRead.toJSON) {
+      sedData.skipRead = SED.SkipRead.toJSON();
     }
 
     return sedData;
@@ -110,6 +115,11 @@
     // Restore achievement state
     if (data.achievements && SED.AchievementState && SED.AchievementState.fromJSON) {
       SED.AchievementState.fromJSON(data.achievements);
+    }
+
+    // v2.0: Restore SkipRead history
+    if (data.skipRead && SED.SkipRead && SED.SkipRead.fromJSON) {
+      SED.SkipRead.fromJSON(data.skipRead);
     }
   }
 

@@ -288,6 +288,16 @@
         ctx.requestedJump = null;
       }
 
+      // v2.0: take rewind snapshot after each step completes
+      if (SED.Rewind && SED.Rewind.takeSnapshot) {
+        SED.Rewind.takeSnapshot();
+      }
+
+      // v2.0: emit step completion event
+      if (SED.EventBus) {
+        SED.EventBus.emit("stepEnd", { sceneId: this._scene.sceneId, nodeId: this._queue.currentNodeId() });
+      }
+
       this._activeStep = null;
       this._activeHandler = null;
       this._activeRuntime = null;

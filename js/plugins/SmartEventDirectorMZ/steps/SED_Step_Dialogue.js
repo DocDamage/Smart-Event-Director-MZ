@@ -38,6 +38,9 @@
         SED.ThemeManager.apply(step.theme);
         runtime._themeApplied = true;
       }
+      if (SED.EventBus) {
+        SED.EventBus.emit("stepStart", { type: step.type, step: step, context: context });
+      }
       runtime.phase = "waitForMessageSlot";
     },
 
@@ -80,6 +83,15 @@
             faceName: step.faceName || null,
             faceIndex: Number(step.faceIndex || 0)
           });
+        }
+        if (SED.NVLMode) {
+          SED.NVLMode.addToBacklog(step.speaker, displayText);
+        }
+        if (SED.SkipRead) {
+          SED.SkipRead.markSeen(step.text, step.speaker);
+        }
+        if (SED.SkipRead && SED.SkipRead.shouldSkip(step) && SED.TextEffects) {
+          SED.TextEffects.pushOverride(0, 1);
         }
 
         runtime.phase = "waitForMessageClose";

@@ -1,0 +1,161 @@
+{
+  "schema": "SED_SCENE_1",
+  "sceneId": "example_v12_features",
+  "title": "v1.2 Features Demo",
+  "canSkip": true,
+  "timeoutFrames": 7200,
+  "context": "map",
+  "steps": [
+    {
+      "type": "lockPlayer"
+    },
+    {
+      "type": "titleCard",
+      "title": "Smart Event Director v1.2",
+      "subtitle": "Busts, QTEs, Timelines, Screen Effects & Layers",
+      "duration": 180,
+      "fadeIn": 30,
+      "fadeOut": 30,
+      "wait": true
+    },
+    {
+      "type": "bust",
+      "character": "mira",
+      "emotion": "neutral",
+      "position": "left",
+      "action": "show",
+      "enter": "slideLeft"
+    },
+    {
+      "type": "bust",
+      "character": "kai",
+      "emotion": "neutral",
+      "position": "right",
+      "action": "show",
+      "enter": "slideRight"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Mira",
+      "text": "Kai, something feels off about this place...",
+      "bust": "mira",
+      "emotion": "worried"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Kai",
+      "text": "[angry]You're always worried. Let's move.",
+      "bust": "kai",
+      "emotion": "angry"
+    },
+    {
+      "type": "camera",
+      "action": "shake",
+      "power": 7,
+      "speed": 6,
+      "duration": 45,
+      "wait": true
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Mira",
+      "text": "What was that?!",
+      "bust": "mira",
+      "emotion": "shocked"
+    },
+    {
+      "type": "qte",
+      "variant": "press",
+      "prompt": "Dodge the falling rock!",
+      "key": "ok",
+      "window": 90,
+      "successJump": "dodged",
+      "failJump": "hit"
+    },
+    {
+      "type": "label",
+      "name": "hit"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Kai",
+      "text": "[shocked]Mira! Are you okay?",
+      "bust": "kai",
+      "emotion": "shocked"
+    },
+    {
+      "type": "fadeOut",
+      "duration": 60,
+      "wait": true
+    },
+    {
+      "type": "dialogue",
+      "speaker": "System",
+      "text": "You took damage from the rock..."
+    },
+    {
+      "type": "fadeIn",
+      "duration": 60,
+      "wait": true
+    },
+    {
+      "type": "jump",
+      "label": "after_qte"
+    },
+    {
+      "type": "label",
+      "name": "dodged"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Mira",
+      "text": "[happy]Ha! Too slow!",
+      "bust": "mira",
+      "emotion": "happy"
+    },
+    {
+      "type": "unlockAchievement",
+      "achievementId": "ninja_reflexes"
+    },
+    {
+      "type": "label",
+      "name": "after_qte"
+    },
+    {
+      "type": "timeline",
+      "target": "camera",
+      "keyframes": [
+        { "frame": 0, "x": 0, "y": 0, "zoom": 1.0 },
+        { "frame": 60, "x": -200, "y": -100, "zoom": 1.4, "easing": "easeInOut" },
+        { "frame": 120, "x": 200, "y": 100, "zoom": 1.2, "easing": "easeInOut" },
+        { "frame": 180, "x": 0, "y": 0, "zoom": 1.0, "easing": "easeOut" }
+      ]
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Kai",
+      "text": "Look at that view...",
+      "bust": "kai",
+      "emotion": "neutral"
+    },
+    {
+      "type": "bust",
+      "character": "mira",
+      "action": "hide",
+      "exit": "slideOutLeft"
+    },
+    {
+      "type": "bust",
+      "character": "kai",
+      "action": "hide",
+      "exit": "slideOutRight"
+    },
+    {
+      "type": "unlockPlayer"
+    },
+    {
+      "type": "comment",
+      "text": "End of v1.2 demo scene. Triggers, layers, and screen effects can be tested via plugin commands or auto-start triggers."
+    }
+  ]
+}

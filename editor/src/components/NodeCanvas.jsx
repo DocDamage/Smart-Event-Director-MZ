@@ -44,6 +44,7 @@ export default function NodeCanvas({
         nodeTypes={nodeTypes}
         fitView
         attributionPosition="bottom-left"
+        deleteKeyCode={['Backspace', 'Delete']}
       >
         <Background gap={16} size={1} />
         <Controls />

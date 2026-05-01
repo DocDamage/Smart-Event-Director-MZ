@@ -64,7 +64,14 @@
           }
         }
 
-        $gameMessage.add(String(step.text || ""));
+        let displayText = String(step.text || "");
+        const emotionMatch = displayText.match(/\[(\w+)\]/);
+        if (emotionMatch && step.bust && SED.BustManager) {
+          SED.BustManager.setEmotion(step.bust, emotionMatch[1]);
+          displayText = displayText.replace(emotionMatch[0], "").trim();
+        }
+
+        $gameMessage.add(displayText);
 
         if (SED.DialogueLog && SED.DialogueLog.addEntry) {
           SED.DialogueLog.addEntry({

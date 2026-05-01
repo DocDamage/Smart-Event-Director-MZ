@@ -26,9 +26,9 @@
     start(step, context, runtime) {
       const title = String(step.title || "");
       const subtitle = step.subtitle ? String(step.subtitle) : null;
-      const fadeIn = Math.max(0, Number(step.fadeIn || 30));
+      const fadeIn = Math.max(0, Number(step.fadeIn || SED.Constants.DEFAULT_EFFECT_DURATION));
       const duration = Math.max(0, Number(step.duration || 180));
-      const fadeOut = Math.max(0, Number(step.fadeOut || 30));
+      const fadeOut = Math.max(0, Number(step.fadeOut || SED.Constants.DEFAULT_EFFECT_DURATION));
       const wait = step.wait !== false;
       const now = Graphics.frameCount;
 
@@ -81,8 +81,8 @@
       if (!win) return true;
 
       const fc = Graphics.frameCount;
-      const fadeIn = Math.max(1, Number(step.fadeIn || 30));
-      const fadeOut = Math.max(1, Number(step.fadeOut || 30));
+      const fadeIn = Math.max(1, Number(step.fadeIn || SED.Constants.DEFAULT_EFFECT_DURATION));
+      const fadeOut = Math.max(1, Number(step.fadeOut || SED.Constants.DEFAULT_EFFECT_DURATION));
 
       if (runtime.phase === "fadeIn") {
         if (fc >= runtime.fadeInEnd) {

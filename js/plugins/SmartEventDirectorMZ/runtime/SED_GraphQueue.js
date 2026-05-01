@@ -27,6 +27,11 @@
     }
 
     this._currentNodeId = this._findStartNode();
+
+    this._nodeIndexMap = new Map();
+    for (let i = 0; i < this._nodes.length; i++) {
+      this._nodeIndexMap.set(this._nodes[i].id, i);
+    }
   }
 
   GraphQueue.prototype._findStartNode = function() {
@@ -46,8 +51,7 @@
 
   GraphQueue.prototype.currentIndex = function() {
     if (!this._currentNodeId) return 0;
-    const m = this._currentNodeId.match(/^step_(\d+)$/);
-    return m ? parseInt(m[1], 10) : 0;
+    return this._nodeIndexMap.get(this._currentNodeId) ?? 0;
   };
 
   GraphQueue.prototype.next = function() {

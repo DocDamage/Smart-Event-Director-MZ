@@ -24,14 +24,16 @@
     "example_bust_voice.json",
     "example_qte.json",
     "example_timeline.json",
-    "example_achievement_unlock.json"
+    "example_achievement_unlock.json",
+    "example_v12_features.json"
   ],
   "quests": [
     "example_tutorial_quest.json",
     "example_side_quest.json"
   ],
   "achievements": [
-    "example_achievements.json"
+    "example_achievements.json",
+    "ninja_reflexes.json"
   ],
   "localeFiles": {
     "en": "lang/en.json"

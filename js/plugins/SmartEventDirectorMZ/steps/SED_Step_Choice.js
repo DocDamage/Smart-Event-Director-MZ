@@ -3,6 +3,8 @@
 
   const SED = window.SED;
 
+  const _originalIsEnabled = Window_ChoiceList.prototype.isEnabled;
+
   function cancelIndex(step) {
     if (step.cancel === "none") return -1;
     if (step.cancel === "branch") return -2;
@@ -46,8 +48,8 @@
         errors.push("choice step needs non-empty options array.");
       }
 
-      if (step.options && step.options.length > 6) {
-        errors.push("choice step has more than 6 options. MZ default choice UI may not fit.");
+      if (step.options && step.options.length > SED.Constants.MAX_CHOICE_OPTIONS) {
+        errors.push("choice step has more than " + SED.Constants.MAX_CHOICE_OPTIONS + " options. MZ default choice UI may not fit.");
       }
 
       if (step.timeout !== undefined && (!Number.isFinite(step.timeout) || step.timeout < 1)) {
@@ -62,6 +64,9 @@
       runtime.resultIndex = null;
       runtime.done = false;
       runtime.filtered = null;
+      if (SED.InputManager) {
+        SED.InputManager.clear();
+      }
     },
 
     update(step, context, runtime) {
@@ -87,19 +92,20 @@
         $gameMessage.setChoices(options, defaultIndex, cancelIndex(step));
 
         if (disabledFlags && disabledFlags.some(Boolean)) {
-          const _isEnabled = Window_ChoiceList.prototype.isEnabled;
           Window_ChoiceList.prototype.isEnabled = function(index) {
-            return !disabledFlags[index];
+            const flags = $gameMessage._sedDisabledFlags;
+            if (flags && index < flags.length) return !flags[index];
+            return _originalIsEnabled.call(this, index);
           };
-          runtime._restoreIsEnabled = function() {
-            Window_ChoiceList.prototype.isEnabled = _isEnabled;
-          };
+          $gameMessage._sedDisabledFlags = disabledFlags;
         }
 
         $gameMessage.setChoiceCallback(index => {
           runtime.resultIndex = index;
           runtime.done = true;
         });
+
+        runtime._needsCleanup = disabledFlags && disabledFlags.some(Boolean);
 
         if (step.timeout) {
           runtime.timeoutEndFrame = Graphics.frameCount + Number(step.timeout);
@@ -124,9 +130,10 @@
               runtime.resultIndex = defIdx;
               runtime.done = true;
             }
-            if (runtime._restoreIsEnabled) {
-              runtime._restoreIsEnabled();
-              runtime._restoreIsEnabled = null;
+            if (runtime._needsCleanup) {
+              Window_ChoiceList.prototype.isEnabled = _originalIsEnabled;
+              $gameMessage._sedDisabledFlags = null;
+              runtime._needsCleanup = false;
             }
             $gameMessage.clear();
             return true;
@@ -137,9 +144,10 @@
           return false;
         }
 
-        if (runtime._restoreIsEnabled) {
-          runtime._restoreIsEnabled();
-          runtime._restoreIsEnabled = null;
+        if (runtime._needsCleanup) {
+          Window_ChoiceList.prototype.isEnabled = _originalIsEnabled;
+          $gameMessage._sedDisabledFlags = null;
+          runtime._needsCleanup = false;
         }
 
         const localIndex = runtime.resultIndex;
@@ -174,9 +182,10 @@
 
     cancel(step, context, runtime) {
       runtime.done = true;
-      if (runtime._restoreIsEnabled) {
-        runtime._restoreIsEnabled();
-        runtime._restoreIsEnabled = null;
+      if (runtime._needsCleanup) {
+        Window_ChoiceList.prototype.isEnabled = _originalIsEnabled;
+        $gameMessage._sedDisabledFlags = null;
+        runtime._needsCleanup = false;
       }
     }
   });

@@ -76,12 +76,16 @@
 
     if (SED.Profiler && SED.Profiler.getFrameStats) {
       const stats = SED.Profiler.getFrameStats();
-      if (stats && stats.avgFrameTime) {
-        lines.push("Avg Frame: " + stats.avgFrameTime.toFixed(2) + " ms");
+      if (stats && stats.average) {
+        lines.push("Avg Frame: " + stats.average.toFixed(2) + " ms");
       }
     }
 
     textCache = lines;
+
+    if (SED.EventBus) {
+      SED.EventBus.emit(SED.EventBus.Events.OVERLAY_UPDATE);
+    }
   }
 
   function draw() {
@@ -113,6 +117,10 @@
       bitmap.textSize = 14;
       bitmap.drawText(text, 5, 5 + index * 20, 290, 18, "left");
     });
+
+    if (SED.EventBus) {
+      SED.EventBus.emit(SED.EventBus.Events.OVERLAY_DRAW);
+    }
   }
 
   const _Scene_Map_createDisplayObjects = Scene_Map.prototype.createDisplayObjects;
@@ -139,4 +147,13 @@
   };
 
   SED.registerModule("DebugOverlay", "0.2.0");
+
+  if (SED.UpdateDispatcher) {
+    SED.UpdateDispatcher.register("DebugOverlay", {
+      update: function() { if (SED.DebugOverlay && SED.DebugOverlay.update) SED.DebugOverlay.update(); },
+      draw: function() { if (SED.DebugOverlay && SED.DebugOverlay.draw) SED.DebugOverlay.draw(); },
+      priority: 200,
+      contexts: ["map"]
+    });
+  }
 })();

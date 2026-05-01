@@ -24,7 +24,7 @@
       if (action === "scroll") {
         const x = Number(step.x || 0);
         const y = Number(step.y || 0);
-        const duration = Math.max(1, Number(step.duration || 30));
+        const duration = Math.max(1, Number(step.duration || SED.Constants.DEFAULT_EFFECT_DURATION));
 
         if (SED.Tween && step.easing && step.easing !== "linear") {
           SED.Tween.to($gameMap, { displayX: x, displayY: y }, duration, easing);
@@ -40,7 +40,7 @@
         }
       } else if (action === "focus") {
         const eventId = Number(step.eventId || 0);
-        const duration = Math.max(1, Number(step.duration || 30));
+        const duration = Math.max(1, Number(step.duration || SED.Constants.DEFAULT_EFFECT_DURATION));
         const event = eventId > 0 ? $gameMap.event(eventId) : (eventId === -1 ? $gamePlayer : null);
 
         if (event) {
@@ -57,7 +57,7 @@
           }
         }
       } else if (action === "reset") {
-        const duration = Math.max(1, Number(step.duration || 30));
+        const duration = Math.max(1, Number(step.duration || SED.Constants.DEFAULT_EFFECT_DURATION));
 
         if (SED.Tween && step.easing && step.easing !== "linear") {
           SED.Tween.to($gameMap, { displayX: $gamePlayer.x, displayY: $gamePlayer.y }, duration, easing);
@@ -73,7 +73,7 @@
         }
       } else if (action === "shake") {
         const intensity = Number(step.intensity || step.power || 5);
-        const duration = Math.max(1, Number(step.duration || 30));
+        const duration = Math.max(1, Number(step.duration || SED.Constants.DEFAULT_EFFECT_DURATION));
         const decay = Number(step.decay || 0);
 
         if (SED.ScreenEffects && SED.ScreenEffects.shake) {
@@ -92,7 +92,7 @@
         }
       } else if (action === "zoomTo") {
         const zoom = Number(step.zoom || 1);
-        const duration = Math.max(1, Number(step.duration || 30));
+        const duration = Math.max(1, Number(step.duration || SED.Constants.DEFAULT_EFFECT_DURATION));
 
         if (SED.ScreenEffects && SED.ScreenEffects.zoomTo) {
           SED.ScreenEffects.zoomTo(zoom, duration, easing);
@@ -110,7 +110,7 @@
         }
       } else if (action === "flash") {
         const color = step.color || [255, 255, 255, 128];
-        const duration = Math.max(0, Number(step.duration || 30));
+        const duration = Math.max(0, Number(step.duration || SED.Constants.DEFAULT_EFFECT_DURATION));
 
         $gameScreen.startFlash(color, duration);
 
@@ -122,7 +122,7 @@
         }
       } else if (action === "tint") {
         const tone = step.tone || [0, 0, 0, 0];
-        const duration = Math.max(0, Number(step.duration || 30));
+        const duration = Math.max(0, Number(step.duration || SED.Constants.DEFAULT_EFFECT_DURATION));
 
         $gameScreen.startTone(tone, duration);
 

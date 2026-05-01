@@ -4,111 +4,107 @@
   const SED = window.SED;
 
   const _themes = Object.create(null);
-  let _currentThemeId = null;
-
-  const _orig = {
-    message: {},
-    choice: {}
-  };
-
-  function saveOriginal(target, method, proto) {
-    if (!_orig[target][method]) {
-      _orig[target][method] = proto[method];
-    }
-  }
-
-  function applyWindowSkin(skinName) {
-    saveOriginal("message", "loadWindowskin", Window_Message.prototype);
-    Window_Message.prototype.loadWindowskin = function() {
-      this.windowskin = ImageManager.loadSystem(skinName);
-    };
-    saveOriginal("choice", "loadWindowskin", Window_ChoiceList.prototype);
-    Window_ChoiceList.prototype.loadWindowskin = function() {
-      this.windowskin = ImageManager.loadSystem(skinName);
-    };
-  }
-
-  function applyFontSettings(fontFace, fontSize) {
-    saveOriginal("message", "resetFontSettings", Window_Message.prototype);
-    Window_Message.prototype.resetFontSettings = function() {
-      _orig.message.resetFontSettings.apply(this, arguments);
-      if (fontFace) this.contents.fontFace = fontFace;
-      if (fontSize) this.contents.fontSize = fontSize;
-    };
-    saveOriginal("choice", "resetFontSettings", Window_ChoiceList.prototype);
-    Window_ChoiceList.prototype.resetFontSettings = function() {
-      _orig.choice.resetFontSettings.apply(this, arguments);
-      if (fontFace) this.contents.fontFace = fontFace;
-      if (fontSize) this.contents.fontSize = fontSize;
-    };
-  }
-
-  function applyTextColor(rgb) {
-    const colorStr = "rgb(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ")";
-    saveOriginal("message", "resetTextColor", Window_Message.prototype);
-    Window_Message.prototype.resetTextColor = function() {
-      _orig.message.resetTextColor.apply(this, arguments);
-      this.changeTextColor(colorStr);
-    };
-    saveOriginal("choice", "resetTextColor", Window_ChoiceList.prototype);
-    Window_ChoiceList.prototype.resetTextColor = function() {
-      _orig.choice.resetTextColor.apply(this, arguments);
-      this.changeTextColor(colorStr);
-    };
-  }
-
-  function applyChoicePosition(position) {
-    saveOriginal("choice", "updatePlacement", Window_ChoiceList.prototype);
-    Window_ChoiceList.prototype.updatePlacement = function() {
-      _orig.choice.updatePlacement.apply(this, arguments);
-      if (position === "top") {
-        this.y = this._messageWindow.y - this.height;
-      } else if (position === "bottom") {
-        this.y = this._messageWindow.y + this._messageWindow.height;
-      }
-    };
-  }
+  let _activeTheme = null;
 
   function register(themeId, config) {
     _themes[String(themeId)] = config;
   }
 
+  function getActiveTheme() {
+    return _activeTheme ? _themes[_activeTheme] : null;
+  }
+
   function apply(themeId) {
     const config = _themes[String(themeId)];
     if (!config) return;
-    reset();
-
-    if (config.windowSkin) {
-      applyWindowSkin(config.windowSkin);
-    }
-    if (config.fontFace || config.fontSize) {
-      applyFontSettings(config.fontFace, config.fontSize);
-    }
-    if (config.textColor) {
-      applyTextColor(config.textColor);
-    }
-    if (config.choicePosition && config.choicePosition !== "default") {
-      applyChoicePosition(config.choicePosition);
-    }
-
-    _currentThemeId = themeId;
+    _activeTheme = themeId;
   }
 
   function reset() {
-    for (const method in _orig.message) {
-      Window_Message.prototype[method] = _orig.message[method];
-    }
-    for (const method in _orig.choice) {
-      Window_ChoiceList.prototype[method] = _orig.choice[method];
-    }
-    _currentThemeId = null;
+    _activeTheme = null;
   }
+
+  // Formal theme hooks: single prototype delegation patches applied once at load time
+  const _messageLoadWindowskin = Window_Message.prototype.loadWindowskin;
+  Window_Message.prototype.loadWindowskin = function() {
+    const theme = getActiveTheme();
+    if (theme && theme.windowSkin) {
+      this.windowskin = ImageManager.loadSystem(theme.windowSkin);
+    } else {
+      _messageLoadWindowskin.apply(this, arguments);
+    }
+  };
+
+  const _messageResetFontSettings = Window_Message.prototype.resetFontSettings;
+  Window_Message.prototype.resetFontSettings = function() {
+    _messageResetFontSettings.apply(this, arguments);
+    const theme = getActiveTheme();
+    if (theme) {
+      if (theme.fontFace && this.contents) this.contents.fontFace = theme.fontFace;
+      if (theme.fontSize && this.contents) this.contents.fontSize = theme.fontSize;
+    }
+  };
+
+  const _messageResetTextColor = Window_Message.prototype.resetTextColor;
+  Window_Message.prototype.resetTextColor = function() {
+    _messageResetTextColor.apply(this, arguments);
+    const theme = getActiveTheme();
+    if (theme && theme.textColor) {
+      const colorStr = "rgb(" + theme.textColor[0] + "," + theme.textColor[1] + "," + theme.textColor[2] + ")";
+      this.changeTextColor(colorStr);
+    }
+  };
+
+  const _choiceLoadWindowskin = Window_ChoiceList.prototype.loadWindowskin;
+  Window_ChoiceList.prototype.loadWindowskin = function() {
+    const theme = getActiveTheme();
+    if (theme && theme.windowSkin) {
+      this.windowskin = ImageManager.loadSystem(theme.windowSkin);
+    } else {
+      _choiceLoadWindowskin.apply(this, arguments);
+    }
+  };
+
+  const _choiceResetFontSettings = Window_ChoiceList.prototype.resetFontSettings;
+  Window_ChoiceList.prototype.resetFontSettings = function() {
+    _choiceResetFontSettings.apply(this, arguments);
+    const theme = getActiveTheme();
+    if (theme) {
+      if (theme.fontFace && this.contents) this.contents.fontFace = theme.fontFace;
+      if (theme.fontSize && this.contents) this.contents.fontSize = theme.fontSize;
+    }
+  };
+
+  const _choiceResetTextColor = Window_ChoiceList.prototype.resetTextColor;
+  Window_ChoiceList.prototype.resetTextColor = function() {
+    _choiceResetTextColor.apply(this, arguments);
+    const theme = getActiveTheme();
+    if (theme && theme.textColor) {
+      const colorStr = "rgb(" + theme.textColor[0] + "," + theme.textColor[1] + "," + theme.textColor[2] + ")";
+      this.changeTextColor(colorStr);
+    }
+  };
+
+  const _choiceUpdatePlacement = Window_ChoiceList.prototype.updatePlacement;
+  Window_ChoiceList.prototype.updatePlacement = function() {
+    _choiceUpdatePlacement.apply(this, arguments);
+    const theme = getActiveTheme();
+    if (theme && theme.choicePosition) {
+      const position = theme.choicePosition;
+      if (position === "top") {
+        this.y = this._messageWindow.y - this.height;
+      } else if (position === "bottom") {
+        this.y = this._messageWindow.y + this._messageWindow.height;
+      }
+    }
+  };
 
   SED.ThemeManager = {
     register,
     apply,
-    reset
+    reset,
+    getActiveTheme
   };
 
-  SED.registerModule("ThemeManager", "1.1.0");
+  SED.registerModule("ThemeManager", "2.0.0");
 })();

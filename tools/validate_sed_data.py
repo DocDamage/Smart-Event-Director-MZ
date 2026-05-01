@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-"""Validate Smart Event Director MZ scene and quest JSON files."""
+"""Validate Smart Event Director MZ scene, quest, and achievement JSON files."""
 
-import json
 import sys
 from pathlib import Path
+from sed_common import resolve_path, load_json
 
-DATA_DIR = Path("data/SmartEventDirector")
+DATA_DIR = resolve_path("data/SmartEventDirector")
 SCENES_DIR = DATA_DIR / "scenes"
 QUESTS_DIR = DATA_DIR / "quests"
+ACHIEVEMENTS_DIR = DATA_DIR / "achievements"
 INDEX_FILE = DATA_DIR / "index.json"
 
 KNOWN_STEP_TYPES = frozenset(
@@ -18,7 +19,6 @@ KNOWN_STEP_TYPES = frozenset(
         "wait",
         "switch",
         "variable",
-        "fade",
         "fadeIn",
         "fadeOut",
         "moveOneTile",
@@ -55,7 +55,6 @@ KNOWN_STEP_TYPES = frozenset(
         "bust",
         "qte",
         "timeline",
-        "unlockAchievement",
     ]
 )
 
@@ -77,26 +76,11 @@ def log(path: Path, status: str, message: str = "") -> None:
         print(f"{status:<4} {path}")
 
 
-def load_json(path: Path) -> tuple[bool, dict | None]:
-    try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError as exc:
-        log(path, "FAIL", f"invalid JSON: {exc}")
-        return False, None
-    except Exception as exc:
-        log(path, "FAIL", f"cannot read file: {exc}")
-        return False, None
-    if not isinstance(data, dict):
-        log(path, "FAIL", "root must be a JSON object")
-        return False, None
-    return True, data
-
-
-def validate_index() -> tuple[list[str], list[str]]:
-    """Return (scene_files, quest_files) from index, or ([], []) on failure."""
+def validate_index() -> tuple[list[str], list[str], list[str]]:
+    """Return (scene_files, quest_files, achievement_files) from index, or ([], [], []) on failure."""
     ok, data = load_json(INDEX_FILE)
     if not ok:
-        return [], []
+        return [], [], []
 
     issues = []
     schema = data.get("schema")
@@ -105,12 +89,18 @@ def validate_index() -> tuple[list[str], list[str]]:
 
     scenes = data.get("scenes")
     quests = data.get("quests")
+    achievements = data.get("achievements")
     if not isinstance(scenes, list):
         issues.append("'scenes' must be an array")
         scenes = []
     if not isinstance(quests, list):
         issues.append("'quests' must be an array")
         quests = []
+    if achievements is not None and not isinstance(achievements, list):
+        issues.append("'achievements' must be an array")
+        achievements = []
+    if achievements is None:
+        achievements = []
 
     for name in scenes:
         if not isinstance(name, str):
@@ -126,15 +116,22 @@ def validate_index() -> tuple[list[str], list[str]]:
         if not (QUESTS_DIR / name).is_file():
             issues.append(f"indexed quest not found on disk: {name}")
 
+    for name in achievements:
+        if not isinstance(name, str):
+            issues.append(f"invalid achievement filename in index: {name!r}")
+            continue
+        if not (ACHIEVEMENTS_DIR / name).is_file():
+            issues.append(f"indexed achievement not found on disk: {name}")
+
     if issues:
         log(INDEX_FILE, "FAIL", "; ".join(issues))
     else:
         log(INDEX_FILE, "OK")
 
-    return scenes, quests
+    return scenes, quests, achievements
 
 
-def validate_scene(path: Path, known_labels: dict[str, int], scene_ids: dict[str, Path]) -> None:
+def validate_scene(path: Path, known_labels: dict[str, int], scene_ids: dict[str, Path], known_quests: set[str], known_achievements: set[str]) -> None:
     ok, data = load_json(path)
     if not ok:
         return
@@ -178,6 +175,19 @@ def validate_scene(path: Path, known_labels: dict[str, int], scene_ids: dict[str
                     label_map[name] = idx
                 else:
                     issues.append(f"step {idx} label missing 'name'")
+            # Cross-reference checks
+            if step_type in ("startQuest", "updateObjective", "completeQuest", "failQuest", "questReward"):
+                qid = step.get("questId")
+                if qid and known_quests and qid not in known_quests:
+                    warnings.append(f"step {idx} references unknown questId '{qid}'")
+            if step_type == "unlockAchievement":
+                aid = step.get("achievementId")
+                if aid and known_achievements and aid not in known_achievements:
+                    warnings.append(f"step {idx} references unknown achievementId '{aid}'")
+            if step_type == "callScene":
+                cid = step.get("sceneId")
+                if cid and scene_ids and cid not in scene_ids:
+                    warnings.append(f"step {idx} references unknown sceneId '{cid}'")
 
         known_labels[path.name] = label_map
 
@@ -274,25 +284,74 @@ def validate_quest(path: Path, quest_ids: dict[str, Path]) -> None:
         log(path, "OK")
 
 
+def validate_achievement(path: Path, achievement_ids: dict[str, Path]) -> None:
+    ok, data = load_json(path)
+    if not ok:
+        return
+
+    issues = []
+
+    schema = data.get("schema")
+    if not isinstance(schema, str) or not schema.startswith("SED_ACHIEVEMENT_"):
+        issues.append(f"schema should be 'SED_ACHIEVEMENT_*', got {schema!r}")
+
+    achievement_id = data.get("achievementId")
+    if not isinstance(achievement_id, str) or not achievement_id.strip():
+        issues.append("missing or empty 'achievementId'")
+    else:
+        if achievement_id in achievement_ids:
+            issues.append(f"duplicate achievementId '{achievement_id}' (also in {achievement_ids[achievement_id]})")
+        else:
+            achievement_ids[achievement_id] = path
+
+    title = data.get("title")
+    if not isinstance(title, str) or not title.strip():
+        issues.append("missing or empty 'title'")
+
+    if issues:
+        log(path, "FAIL", "; ".join(issues))
+    else:
+        log(path, "OK")
+
+
 def main() -> int:
     if not DATA_DIR.is_dir():
         print(f"FAIL data directory not found: {DATA_DIR}")
         return 1
 
-    validate_index()
-
-    scene_files = sorted(SCENES_DIR.glob("*.json")) if SCENES_DIR.is_dir() else []
-    quest_files = sorted(QUESTS_DIR.glob("*.json")) if QUESTS_DIR.is_dir() else []
+    scene_files, quest_files, achievement_files = validate_index()
 
     scene_ids: dict[str, Path] = {}
     known_labels: dict[str, dict[str, int]] = {}
 
-    for path in scene_files:
-        validate_scene(path, known_labels, scene_ids)
-
+    # First pass: collect all IDs for cross-referencing
     quest_ids: dict[str, Path] = {}
-    for path in quest_files:
-        validate_quest(path, quest_ids)
+    for path in sorted(QUESTS_DIR.glob("*.json")) if QUESTS_DIR.is_dir() else []:
+        ok, data = load_json(path)
+        if ok:
+            qid = data.get("questId")
+            if isinstance(qid, str) and qid:
+                quest_ids[qid] = path
+
+    achievement_ids: dict[str, Path] = {}
+    for path in sorted(ACHIEVEMENTS_DIR.glob("*.json")) if ACHIEVEMENTS_DIR.is_dir() else []:
+        ok, data = load_json(path)
+        if ok:
+            aid = data.get("achievementId")
+            if isinstance(aid, str) and aid:
+                achievement_ids[aid] = path
+
+    for path in sorted(SCENES_DIR.glob("*.json")) if SCENES_DIR.is_dir() else []:
+        validate_scene(path, known_labels, scene_ids, set(quest_ids), set(achievement_ids))
+
+    # Validate quests and achievements, detecting duplicates across files
+    quest_ids_validate: dict[str, Path] = {}
+    for path in sorted(QUESTS_DIR.glob("*.json")) if QUESTS_DIR.is_dir() else []:
+        validate_quest(path, quest_ids_validate)
+
+    achievement_ids_validate: dict[str, Path] = {}
+    for path in sorted(ACHIEVEMENTS_DIR.glob("*.json")) if ACHIEVEMENTS_DIR.is_dir() else []:
+        validate_achievement(path, achievement_ids_validate)
 
     print()
     print(f"Summary: {files_checked} files checked, {warnings_total} warnings, {errors_total} errors")

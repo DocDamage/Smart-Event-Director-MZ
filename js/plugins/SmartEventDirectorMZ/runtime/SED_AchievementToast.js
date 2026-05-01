@@ -3,24 +3,15 @@
 
   const SED = window.SED;
 
-  const DEFAULT_DURATION = 180;
-  const MAX_QUEUE = 5;
-  const TOAST_WIDTH = 400;
-  const TOAST_HEIGHT = 100;
-
-  const queue = [];
-  let activeToast = null;
-  let _sprite = null;
-
   function getDuration() {
     const dur = Number((SED.Params || {}).achievementToastDuration);
-    return Number.isFinite(dur) && dur > 0 ? dur : DEFAULT_DURATION;
+    return Number.isFinite(dur) && dur > 0 ? dur : SED.Constants.TOAST_DEFAULT_DURATION;
   }
 
-  function getPosition() {
+  function getPosition(w, h) {
     const margin = 20;
     return {
-      x: (Graphics.width - TOAST_WIDTH) / 2,
+      x: (Graphics.width - w) / 2,
       y: margin
     };
   }
@@ -32,111 +23,52 @@
     }
   }
 
-  function show(achievementId, title, icon) {
-    if (queue.length >= MAX_QUEUE) {
-      queue.shift();
-    }
-
-    queue.push({
-      achievementId: String(achievementId || ""),
-      title: String(title || ""),
-      icon: icon || null,
-      timer: getDuration(),
-      opacity: 0,
-      phase: "fadeIn"
-    });
-  }
-
-  function update() {
-    if (!_sprite) {
-      _sprite = new Sprite();
-      _sprite.bitmap = new Bitmap(TOAST_WIDTH, TOAST_HEIGHT);
-      _sprite.z = 9998;
-      _sprite.visible = false;
-    }
-
-    const pos = getPosition();
-    _sprite.baseX = pos.x;
-    _sprite.baseY = pos.y;
-
-    if (!activeToast && queue.length > 0) {
-      activeToast = queue.shift();
-      activeToast.timer = getDuration();
-      activeToast.opacity = 0;
-      activeToast.phase = "fadeIn";
-      _sprite.visible = true;
-      playToastSound();
-    }
-
-    if (!activeToast) {
-      _sprite.visible = false;
-      return;
-    }
-
-    if (activeToast.phase === "fadeIn") {
-      activeToast.opacity = Math.min(255, activeToast.opacity + 15);
-      if (activeToast.opacity >= 255) {
-        activeToast.phase = "hold";
-      }
-    }
-
-    if (activeToast.phase === "hold") {
-      activeToast.timer--;
-      if (activeToast.timer <= 60) {
-        activeToast.phase = "fadeOut";
-      }
-    }
-
-    if (activeToast.phase === "fadeOut") {
-      activeToast.opacity = Math.max(0, activeToast.opacity - 15);
-      if (activeToast.opacity <= 0) {
-        activeToast = null;
-        _sprite.visible = false;
-      }
-    }
-
-    if (activeToast) {
-      _sprite.x = _sprite.baseX;
-      _sprite.y = _sprite.baseY;
-    }
-  }
-
-  function draw() {
-    if (!_sprite || !_sprite.visible || !activeToast) return;
-    if (!SceneManager._scene) return;
-
-    const scene = SceneManager._scene;
-    if (!scene._sedAchievementToastSprite) {
-      scene._sedAchievementToastSprite = _sprite;
-      if (scene.addChild) {
-        scene.addChild(_sprite);
-      }
-    }
-
-    const toast = activeToast;
-    const bitmap = _sprite.bitmap;
-    bitmap.clear();
-
-    const alpha = toast.opacity / 255;
+  function drawToast(bitmap, data, opacity, width, height) {
+    const alpha = opacity / 255;
     const bgColor = "rgba(80, 60, 20, " + (0.85 * alpha) + ")";
 
-    bitmap.fillRect(0, 0, TOAST_WIDTH, TOAST_HEIGHT, bgColor);
+    bitmap.clear();
+    bitmap.fillRect(0, 0, width, height, bgColor);
     bitmap.textSize = 16;
     bitmap.textColor = "rgba(255, 215, 100, " + alpha + ")";
-    bitmap.drawText("Achievement Unlocked!", 10, 10, 380, 30, "center");
+    bitmap.drawText("Achievement Unlocked!", 10, 10, width - 20, 30, "center");
 
     bitmap.textSize = 14;
     bitmap.textColor = "rgba(255, 255, 255, " + alpha + ")";
+    bitmap.drawText(data.title || "", 10, 45, width - 20, 24, "center");
+  }
 
-    const iconText = toast.icon ? "[" + toast.icon + "] " : "";
-    bitmap.drawText(iconText + toast.title, 10, 45, 380, 24, "center");
+  const toast = SED.ToastManager.create({
+    width: 400,
+    height: 100,
+    zIndex: 9998,
+    defaultDuration: SED.Constants.TOAST_DEFAULT_DURATION,
+    durationParam: "achievementToastDuration",
+    getPosition: getPosition,
+    animation: "none",
+    cacheKey: "_sedAchievementToastSprite",
+    onShow: playToastSound,
+    draw: drawToast
+  });
+
+  function show(achievementId, title) {
+    toast.show({ achievementId: String(achievementId || ""), title: String(title || "") });
   }
 
   SED.AchievementToast = {
     show,
-    update,
-    draw
+    update: toast.update,
+    draw: toast.draw
   };
 
-  SED.registerModule("AchievementToast", "0.1.0");
+  SED.registerModule("AchievementToast", "0.2.0");
+
+  if (SED.UpdateDispatcher) {
+    SED.UpdateDispatcher.register("AchievementToast", {
+      update: function() { if (SED.AchievementToast && SED.AchievementToast.update) SED.AchievementToast.update(); },
+      draw: function() { if (SED.AchievementToast && SED.AchievementToast.draw) SED.AchievementToast.draw(); },
+      priority: 110,
+      contexts: ["map"]
+    });
+  }
 })();

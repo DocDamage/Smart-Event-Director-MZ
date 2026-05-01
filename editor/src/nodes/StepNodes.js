@@ -82,50 +82,37 @@ const StepNode = memo(({ data, selected }) => {
 
   return (
     <div
+      className={`sed-node-card${selected ? ' selected' : ''}`}
       style={{
-        width: 150,
-        background: '#fff',
         border: `${borderWidth}px solid ${borderColor}`,
-        borderRadius: 6,
-        fontSize: 12,
-        overflow: 'hidden',
-        boxShadow: selected ? `0 0 0 3px ${color}44` : '0 1px 3px rgba(0,0,0,0.15)',
+        boxShadow: selected ? `0 0 0 3px ${color}44` : undefined,
       }}
     >
-      <Handle type="target" position={Position.Left} style={{ background: color, width: 8, height: 8 }} />
-      <div
-        style={{
-          background: color,
-          color: '#fff',
-          padding: '4px 6px',
-          fontWeight: 700,
-          textTransform: 'uppercase',
-          fontSize: 10,
-          letterSpacing: 0.5,
-        }}
-      >
+      <Handle type="target" position={Position.Left} style={{ background: color }} className="sed-handle" />
+      <div className="sed-node-header" style={{ background: color }}>
         {type}
       </div>
-      <div style={{ padding: '6px', color: '#374151', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minHeight: 18 }}>
+      <div className="sed-node-preview">
         {preview}
       </div>
 
       {hasError && (
-        <div style={{ padding: '0 6px 4px', fontSize: 10, color: '#ef4444' }}>
+        <div className="sed-node-error">
           {data._validationErrors[0]}
         </div>
       )}
 
       {type === 'choice' && Array.isArray(data.options) && (
-        <div style={{ padding: '0 6px 6px' }}>
+        <div className="sed-node-options">
           {data.options.map((opt, i) => (
-            <div key={i} style={{ position: 'relative', fontSize: 10, color: '#4b5563', padding: '2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <div key={i} className="sed-node-option">
               • {opt.text || `Option ${i + 1}`}
               <Handle
                 type="source"
                 position={Position.Right}
                 id={`option-${i}`}
-                style={{ top: 10, background: '#22c55e', width: 8, height: 8 }}
+                style={{ top: 10, background: '#22c55e' }}
+                className="sed-handle"
               />
             </div>
           ))}
@@ -134,15 +121,15 @@ const StepNode = memo(({ data, selected }) => {
 
       {type === 'condition' && (
         <div style={{ position: 'relative', height: 36 }}>
-          <Handle type="source" position={Position.Right} id="true" style={{ top: 10, background: '#22c55e', width: 8, height: 8 }} />
-          <div style={{ fontSize: 10, color: '#4b5563', padding: '2px 6px' }}>True</div>
-          <Handle type="source" position={Position.Right} id="false" style={{ top: 30, background: '#ef4444', width: 8, height: 8 }} />
-          <div style={{ fontSize: 10, color: '#4b5563', padding: '2px 6px' }}>False</div>
+          <Handle type="source" position={Position.Right} id="true" style={{ top: 10, background: '#22c55e' }} className="sed-handle" />
+          <div className="sed-node-option">True</div>
+          <Handle type="source" position={Position.Right} id="false" style={{ top: 30, background: '#ef4444' }} className="sed-handle" />
+          <div className="sed-node-option">False</div>
         </div>
       )}
 
       {type !== 'choice' && type !== 'condition' && (
-        <Handle type="source" position={Position.Right} style={{ background: color, width: 8, height: 8 }} />
+        <Handle type="source" position={Position.Right} style={{ background: color }} className="sed-handle" />
       )}
     </div>
   );

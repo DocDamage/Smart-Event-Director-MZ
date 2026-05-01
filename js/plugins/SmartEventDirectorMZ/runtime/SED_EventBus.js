@@ -4,6 +4,19 @@
   const SED = window.SED;
   const listeners = Object.create(null);
 
+  const Events = {
+    RUNNER_UPDATE_START: "runner:updateStart",
+    RUNNER_UPDATE_END: "runner:updateEnd",
+    RUNNER_STEP_START: "runner:stepStart",
+    RUNNER_STEP_END: "runner:stepEnd",
+    RUNNER_SCENE_COMPLETE: "runner:sceneComplete",
+    RUNNER_SCENE_FAIL: "runner:sceneFail",
+    RUNNER_STOP: "runner:stop",
+    RUNNER_PLAY: "runner:play",
+    OVERLAY_UPDATE: "overlay:update",
+    OVERLAY_DRAW: "overlay:draw"
+  };
+
   function on(event, fn) {
     if (typeof event !== "string" || typeof fn !== "function") return;
     if (!listeners[event]) listeners[event] = [];
@@ -44,8 +57,9 @@
     on,
     off,
     once,
-    emit
+    emit,
+    Events
   };
 
-  SED.registerModule("EventBus", "2.0.0");
+  SED.registerModule("EventBus", "2.1.0");
 })();

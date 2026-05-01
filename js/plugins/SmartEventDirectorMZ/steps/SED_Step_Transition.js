@@ -38,7 +38,7 @@
 
     start(step, context, runtime) {
       const effect = step.effect || "fade";
-      const duration = Math.max(0, Number(step.duration || 30));
+      const duration = Math.max(0, Number(step.duration || SED.Constants.DEFAULT_EFFECT_DURATION));
       runtime.wait = step.wait !== false;
       runtime.effect = effect;
       runtime.duration = duration;

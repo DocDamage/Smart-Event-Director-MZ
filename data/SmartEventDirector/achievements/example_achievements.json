@@ -4,5 +4,5 @@
   "title": "Secret Seeker",
   "description": "Find the hidden room.",
   "icon": "icon_star",
-  "secret": false
+  "hidden": false
 }

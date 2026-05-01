@@ -3,12 +3,12 @@
 
   const SED = window.SED;
 
-  // Patch Scene_Battle to update SED runner
+  // Patch Scene_Battle to dispatch updates
   const _Scene_Battle_update = Scene_Battle.prototype.update;
   Scene_Battle.prototype.update = function() {
     _Scene_Battle_update.apply(this, arguments);
-    if (SED.Runner && SED.Runner.update) {
-      SED.Runner.update();
+    if (SED.UpdateDispatcher) {
+      SED.UpdateDispatcher.update("battle");
     }
   };
 

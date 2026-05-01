@@ -12,7 +12,6 @@
 
   let _vignetteSprite = null;
   let _grainSprite = null;
-  let _chromaticFilter = null;
   let _colorMatrixFilter = null;
 
   function ensureOverlayContainer() {
@@ -32,15 +31,14 @@
     return container;
   }
 
-  function createVignetteBitmap(intensity) {
+  function createVignetteBitmap() {
     const w = Graphics.width;
     const h = Graphics.height;
     const bitmap = new Bitmap(w, h);
     const ctx = bitmap.context;
     const grad = ctx.createRadialGradient(w / 2, h / 2, w * 0.25, w / 2, h / 2, w * 0.85);
-    const alpha = Math.max(0, Math.min(1, intensity));
     grad.addColorStop(0, "rgba(0,0,0,0)");
-    grad.addColorStop(1, "rgba(0,0,0," + alpha + ")");
+    grad.addColorStop(1, "rgba(0,0,0,1)");
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, w, h);
     bitmap._baseTexture.update();
@@ -48,9 +46,9 @@
   }
 
   function createGrainBitmap() {
-    const size = 256;
+    const size = SED.Constants.GRAIN_BITMAP_SIZE;
     const bitmap = new Bitmap(size, size);
-    for (let i = 0; i < size * size * 0.4; i++) {
+    for (let i = 0; i < size * size * SED.Constants.GRAIN_DENSITY; i++) {
       const x = Math.random() * size | 0;
       const y = Math.random() * size | 0;
       const a = Math.random() * 0.25;
@@ -118,7 +116,7 @@
 
     shake(intensity, duration, decay) {
       this._shakeIntensity = Number(intensity || 5);
-      this._shakeDuration = Math.max(1, Number(duration || 30));
+      this._shakeDuration = Math.max(1, Number(duration || SED.Constants.DEFAULT_EFFECT_DURATION));
       this._shakeDecay = Math.max(0, Number(decay || 0));
       this._shakeTimer = this._shakeDuration;
       const power = Math.max(0, Math.min(Math.round(this._shakeIntensity), 9));
@@ -129,20 +127,20 @@
     zoomTo(zoom, duration, easing) {
       this._zoomStart = ($gameScreen && $gameScreen._zoomScale) || 1;
       this._zoomTarget = Number(zoom || 1);
-      this._zoomDuration = Math.max(1, Number(duration || 30));
+      this._zoomDuration = Math.max(1, Number(duration || SED.Constants.DEFAULT_EFFECT_DURATION));
       this._zoomTimer = this._zoomDuration;
       this._zoomEasing = String(easing || "linear");
     },
 
     vignette(intensity, duration, easing) {
       this._vignetteTarget = Math.max(0, Math.min(1, Number(intensity || 0)));
-      this._vignetteDuration = Math.max(1, Number(duration || 30));
+      this._vignetteDuration = Math.max(1, Number(duration || SED.Constants.DEFAULT_EFFECT_DURATION));
       this._vignetteTimer = this._vignetteDuration;
       this._vignetteEasing = String(easing || "linear");
       if (!_vignetteSprite && this._vignetteTarget > 0) {
         const container = ensureOverlayContainer();
         if (container) {
-          _vignetteSprite = new Sprite(createVignetteBitmap(this._vignetteTarget));
+          _vignetteSprite = new Sprite(createVignetteBitmap());
           _vignetteSprite.opacity = 0;
           container.addChild(_vignetteSprite);
         }
@@ -151,7 +149,7 @@
 
     grain(intensity, duration) {
       this._grainTarget = Math.max(0, Math.min(1, Number(intensity || 0)));
-      this._grainDuration = Math.max(1, Number(duration || 30));
+      this._grainDuration = Math.max(1, Number(duration || SED.Constants.DEFAULT_EFFECT_DURATION));
       this._grainTimer = this._grainDuration;
       if (!_grainSprite && this._grainTarget > 0) {
         const container = ensureOverlayContainer();
@@ -173,7 +171,7 @@
         saturation: Number(params.saturation !== undefined ? params.saturation : 1),
         temperature: Number(params.temperature !== undefined ? params.temperature : 0)
       };
-      this._colorMatrixDuration = Math.max(1, Number(duration || 30));
+      this._colorMatrixDuration = Math.max(1, Number(duration || SED.Constants.DEFAULT_EFFECT_DURATION));
       this._colorMatrixTimer = this._colorMatrixDuration;
       this._colorMatrixEasing = String(easing || "linear");
       applyColorMatrixFilter();
@@ -181,7 +179,7 @@
 
     chromaticAberration(intensity, duration, easing) {
       this._chromaticTarget = Math.max(0, Number(intensity || 0));
-      this._chromaticDuration = Math.max(1, Number(duration || 30));
+      this._chromaticDuration = Math.max(1, Number(duration || SED.Constants.DEFAULT_EFFECT_DURATION));
       this._chromaticTimer = this._chromaticDuration;
       this._chromaticEasing = String(easing || "linear");
     },
@@ -234,9 +232,6 @@
         const value = this._vignetteIntensity + (this._vignetteTarget - this._vignetteIntensity) * easeFn(t);
         if (_vignetteSprite) {
           _vignetteSprite.opacity = Math.round(value * 255);
-          if (Math.abs(value - this._vignetteTarget) < 0.01) {
-            _vignetteSprite.bitmap = createVignetteBitmap(value);
-          }
         }
         if (this._vignetteTimer === 0) this._vignetteIntensity = this._vignetteTarget;
       }
@@ -247,8 +242,8 @@
         const value = this._grainIntensity + (this._grainTarget - this._grainIntensity) * t;
         if (_grainSprite) {
           _grainSprite.opacity = Math.round(value * 255);
-          _grainSprite.origin.x = Math.random() * 256;
-          _grainSprite.origin.y = Math.random() * 256;
+          _grainSprite.origin.x = Math.random() * SED.Constants.GRAIN_BITMAP_SIZE;
+          _grainSprite.origin.y = Math.random() * SED.Constants.GRAIN_BITMAP_SIZE;
         }
         if (this._grainTimer === 0) this._grainIntensity = this._grainTarget;
       }
@@ -294,4 +289,12 @@
 
   SED.ScreenEffects = ScreenEffects;
   SED.registerModule("ScreenEffects", "1.2.0");
+
+  if (SED.UpdateDispatcher) {
+    SED.UpdateDispatcher.register("ScreenEffects", {
+      update: function() { if (SED.ScreenEffects && SED.ScreenEffects.update) SED.ScreenEffects.update(); },
+      priority: 40,
+      contexts: ["map"]
+    });
+  }
 })();

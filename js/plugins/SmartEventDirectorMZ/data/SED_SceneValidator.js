@@ -217,6 +217,37 @@
     return errors;
   }
 
+  function validateScene(scene) {
+    const errors = [];
+    if (!scene || typeof scene !== "object") {
+      errors.push("scene must be an object.");
+      return errors;
+    }
+    if (scene.schema !== "SED_SCENE_1" && scene.schema !== "SED_SCENE_2") {
+      errors.push("schema should be 'SED_SCENE_1' or 'SED_SCENE_2', got " + scene.schema + ".");
+    }
+    if (!scene.sceneId || typeof scene.sceneId !== "string") {
+      errors.push("missing or empty 'sceneId'.");
+    }
+    const hasSteps = Array.isArray(scene.steps);
+    const hasNodes = Array.isArray(scene.nodes);
+    const hasEdges = Array.isArray(scene.edges);
+    if (hasSteps) {
+      validateSteps(scene, errors);
+    }
+    if (hasNodes || hasEdges) {
+      if (!hasNodes || !hasEdges) {
+        errors.push("graph format requires both 'nodes' and 'edges' arrays.");
+      } else {
+        validateGraph(scene, errors);
+      }
+    }
+    if (!hasSteps && !hasNodes) {
+      errors.push("scene must have 'steps' (linear) or 'nodes'/'edges' (graph).");
+    }
+    return errors;
+  }
+
   SED.SceneValidator = {
     validateScene,
     validateGraph,

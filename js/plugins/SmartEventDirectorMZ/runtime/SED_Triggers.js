@@ -91,4 +91,12 @@
 
   SED.Triggers = Triggers;
   SED.registerModule("Triggers", "1.2.0");
+
+  if (SED.UpdateDispatcher) {
+    SED.UpdateDispatcher.register("Triggers", {
+      update: function() { if (SED.Triggers && SED.Triggers.update) SED.Triggers.update(); },
+      priority: 30,
+      contexts: ["map"]
+    });
+  }
 })();

@@ -8,14 +8,13 @@
   let _lastScene = null;
   let _focused = null;
 
-  function ensureUpdateHook() {
-    if (SED.BustManager._hooked) return;
-    SED.BustManager._hooked = true;
-    const _update = Scene_Base.prototype.update;
-    Scene_Base.prototype.update = function() {
-      _update.apply(this, arguments);
-      if (SED.BustManager) SED.BustManager.update();
-    };
+  // Self-register with UpdateDispatcher for base-scene context
+  if (SED.UpdateDispatcher) {
+    SED.UpdateDispatcher.register("BustManager", {
+      update: function() { if (SED.BustManager) SED.BustManager.update(); },
+      priority: 50,
+      contexts: ["base"]
+    });
   }
 
   function targetX(position) {
@@ -77,11 +76,9 @@
   }
 
   SED.BustManager = {
-    _hooked: false,
     _busts: _busts,
 
     show(character, emotion, position, enterAnimation) {
-      ensureUpdateHook();
       const existing = _busts.get(character);
       if (existing && existing.parent) {
         existing.parent.removeChild(existing);
@@ -97,11 +94,11 @@
         targetY: targetY(),
         enterAnimation: enterAnimation || "fadeIn",
         enterProgress: 0,
-        enterDuration: 20,
+        enterDuration: SED.Constants.BUST_ENTER_DURATION,
         exiting: false,
         exitAnimation: null,
         exitProgress: 0,
-        exitDuration: 20
+        exitDuration: SED.Constants.BUST_EXIT_DURATION
       };
 
       if (enterAnimation === "slideLeft") {
@@ -191,7 +188,7 @@
         }
 
         if (!data.exiting && _focused && character !== _focused) {
-          baseOpacity = Math.min(baseOpacity, 128);
+          baseOpacity = Math.min(baseOpacity, SED.Constants.UNFOCUSED_OPACITY);
         }
         sprite.opacity = baseOpacity;
       });

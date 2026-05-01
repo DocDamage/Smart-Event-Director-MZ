@@ -25,8 +25,12 @@
     },
 
     start(step, context, runtime) {
-      if (SED.InputBuffer) {
-        SED.InputBuffer.clear();
+      if (SED.InputManager) {
+        SED.InputManager.clear();
+      }
+      // Prevent immediate message advancement from the key press that triggered this scene
+      if (Input && Input.clear) {
+        Input.clear();
       }
       if (SED.TextEffects) {
         SED.TextEffects.pushOverride(step.textSpeed, step.autoAdvance);
@@ -75,6 +79,11 @@
         }
 
         $gameMessage.add(displayText);
+
+        // v2.1: consume any pending OK flag after message submission
+        if (SED.InputManager) {
+          SED.InputManager.consumeOk();
+        }
 
         if (SED.DialogueLog && SED.DialogueLog.addEntry) {
           SED.DialogueLog.addEntry({

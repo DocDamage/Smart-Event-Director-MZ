@@ -324,6 +324,11 @@
         },
         "defaultIndex": {
           "type": "number"
+        },
+        "conditionMode": {
+          "type": "string",
+          "enum": ["hidden", "disabled"],
+          "description": "How to handle options that fail their condition."
         }
       },
       "additionalProperties": false
@@ -659,7 +664,7 @@
     },
     "selfSwitchStep": {
       "type": "object",
-      "required": ["type", "eventId", "switchId", "value"],
+      "required": ["type", "eventId", "letter", "value"],
       "properties": {
         "type": {
           "type": "string",
@@ -668,7 +673,7 @@
         "eventId": {
           "type": "number"
         },
-        "switchId": {
+        "letter": {
           "type": "string",
           "enum": ["A", "B", "C", "D"]
         },
@@ -687,7 +692,8 @@
           "enum": ["audio"]
         },
         "action": {
-          "type": "string"
+          "type": "string",
+          "enum": ["bgm", "bgs", "se", "me", "stopBgm", "stopBgs", "stopAll"]
         },
         "name": {
           "type": "string"
@@ -732,7 +738,7 @@
         },
         "action": {
           "type": "string",
-          "enum": ["scroll", "focus", "reset", "shake", "flash", "tint"]
+          "enum": ["scroll", "focus", "reset", "shake", "zoomTo", "flash", "tint"]
         }
       },
       "additionalProperties": true
@@ -901,7 +907,7 @@
               "id": {
                 "type": "number"
               },
-              "count": {
+              "quantity": {
                 "type": "number"
               }
             }
@@ -915,7 +921,7 @@
               "id": {
                 "type": "number"
               },
-              "count": {
+              "quantity": {
                 "type": "number"
               }
             }
@@ -929,7 +935,7 @@
               "id": {
                 "type": "number"
               },
-              "count": {
+              "quantity": {
                 "type": "number"
               }
             }
@@ -943,7 +949,7 @@
     },
     "relationshipStep": {
       "type": "object",
-      "required": ["type", "target", "operation", "value"],
+      "required": ["type", "target", "action", "value"],
       "properties": {
         "type": {
           "type": "string",
@@ -952,7 +958,7 @@
         "target": {
           "type": "string"
         },
-        "operation": {
+        "action": {
           "type": "string",
           "enum": ["set", "add"]
         },

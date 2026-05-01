@@ -3,7 +3,7 @@
 
   const SED = window.SED;
 
-  const MAX_ENTRIES = 100;
+  const MAX_ENTRIES = SED.Constants.DIALOGUE_LOG_MAX_ENTRIES;
   const entries = [];
   let _visible = false;
   let _window = null;
@@ -201,4 +201,13 @@
   };
 
   SED.registerModule("DialogueLog", "1.1.0");
+
+  if (SED.UpdateDispatcher) {
+    SED.UpdateDispatcher.register("DialogueLog", {
+      update: function() { if (SED.DialogueLog && SED.DialogueLog.update) SED.DialogueLog.update(); },
+      draw: function() { if (SED.DialogueLog && SED.DialogueLog.draw) SED.DialogueLog.draw(); },
+      priority: 130,
+      contexts: ["map"]
+    });
+  }
 })();

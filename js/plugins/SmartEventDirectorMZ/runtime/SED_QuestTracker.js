@@ -126,4 +126,13 @@
   };
 
   SED.registerModule("QuestTracker", "0.3.0");
+
+  if (SED.UpdateDispatcher) {
+    SED.UpdateDispatcher.register("QuestTracker", {
+      update: function() { if (SED.QuestTracker && SED.QuestTracker.update) SED.QuestTracker.update(); },
+      draw: function() { if (SED.QuestTracker && SED.QuestTracker.draw) SED.QuestTracker.draw(); },
+      priority: 120,
+      contexts: ["map"]
+    });
+  }
 })();

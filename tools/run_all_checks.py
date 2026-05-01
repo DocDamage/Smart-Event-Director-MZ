@@ -14,7 +14,15 @@ def run(script_name: str) -> int:
     print(f"\n{'=' * 60}", flush=True)
     print(f"Running {script_name}", flush=True)
     print("=" * 60, flush=True)
-    result = subprocess.run([sys.executable, str(script)], cwd=PROJECT_ROOT)
+    result = subprocess.run(
+        [sys.executable, str(script)],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
+    )
+    print(result.stdout, end="")
+    if result.stderr:
+        print(result.stderr, end="", file=sys.stderr)
     return result.returncode
 
 

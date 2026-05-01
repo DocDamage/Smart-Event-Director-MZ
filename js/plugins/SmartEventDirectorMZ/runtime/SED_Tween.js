@@ -98,4 +98,12 @@
   };
 
   SED.registerModule("Tween", "1.2.0");
+
+  if (SED.UpdateDispatcher) {
+    SED.UpdateDispatcher.register("Tween", {
+      update: function() { if (SED.Tween && SED.Tween.update) SED.Tween.update(); },
+      priority: 20,
+      contexts: ["map"]
+    });
+  }
 })();

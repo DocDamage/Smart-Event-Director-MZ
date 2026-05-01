@@ -139,34 +139,53 @@
     }
   }
 
-  async function loadQuests(questFiles) {
+  async function loadRegistryEntries(files, pathPrefix, validateFn, registerFn, label) {
     const errors = [];
 
-    if (!Array.isArray(questFiles)) {
-      return;
+    if (!Array.isArray(files)) {
+      return errors;
     }
 
-    for (const file of questFiles) {
+    for (const file of files) {
       try {
-        const questPath = "data/SmartEventDirector/quests/" + file;
-        const questData = await loadJson(questPath);
+        const data = await loadJson(pathPrefix + file);
+        const validationErrors = validateFn ? validateFn(data, file) : [];
 
-        if (!questData.questId || !questData.title) {
-          errors.push("SED quest invalid: " + file);
+        if (validationErrors.length > 0) {
+          errors.push(label + " validation failed: " + file + " — " + validationErrors.join("; "));
           continue;
         }
 
-        SED.QuestRegistry.register(questData);
+        registerFn(data);
       } catch (error) {
         if (isLoadError(error)) {
-          errors.push("SED quest file missing: " + file);
+          errors.push(label + " file missing: " + file);
         } else if (isJsonParseError(error)) {
-          errors.push("SED quest JSON invalid: " + file);
+          errors.push(label + " JSON invalid: " + file + " — " + error.message);
         } else {
-          errors.push("SED quest error: " + file + " — " + error.message);
+          errors.push(label + " error: " + file + " — " + error.message);
         }
       }
     }
+
+    return errors;
+  }
+
+  async function loadQuests(questFiles) {
+    const errors = await loadRegistryEntries(
+      questFiles,
+      "data/SmartEventDirector/quests/",
+      function(data, file) {
+        if (!data.questId || !data.title) {
+          return ["missing questId or title"];
+        }
+        return [];
+      },
+      function(data) {
+        SED.QuestRegistry.register(data);
+      },
+      "SED quest"
+    );
 
     if (errors.length > 0) {
       throw new Error(errors.join("\n"));
@@ -200,68 +219,44 @@
     const errors = [];
 
     // Load scenes
-    if (Array.isArray(index.scenes)) {
-      for (const file of index.scenes) {
-        try {
-          const scenePath = "data/SmartEventDirector/scenes/" + file;
-          const scene = await loadJson(scenePath);
-
-          const validationErrors = SED.SceneValidator.validateScene(scene);
-
-          if (validationErrors.length > 0) {
-            errors.push("SED scene validation failed: " + file + " — " + validationErrors.join("; "));
-            continue;
-          }
-
-          SED.SceneRegistry.register(scene);
-        } catch (error) {
-          if (isLoadError(error)) {
-            errors.push("SED scene file missing: " + file);
-          } else if (isJsonParseError(error)) {
-            errors.push("SED scene JSON invalid: " + file + " — " + error.message);
-          } else {
-            errors.push("SED scene error: " + file + " — " + error.message);
-          }
-        }
-      }
-    }
+    const sceneErrors = await loadRegistryEntries(
+      index.scenes,
+      "data/SmartEventDirector/scenes/",
+      function(scene, file) {
+        return SED.SceneValidator.validateScene(scene);
+      },
+      function(scene) {
+        SED.SceneRegistry.register(scene);
+      },
+      "SED scene"
+    );
+    errors.push.apply(errors, sceneErrors);
 
     // Load quests
     if (Array.isArray(index.quests)) {
       try {
         await loadQuests(index.quests);
       } catch (error) {
-        const questErrors = error.message.split("\n");
-        for (const qe of questErrors) {
-          errors.push(qe);
-        }
+        errors.push.apply(errors, error.message.split("\n"));
       }
     }
 
     // Load achievements
-    if (Array.isArray(index.achievements)) {
-      for (const file of index.achievements) {
-        try {
-          const achievementPath = "data/SmartEventDirector/achievements/" + file;
-          const achievementData = await loadJson(achievementPath);
-
-          if (!achievementData.achievementId) {
-            errors.push("SED achievement invalid: " + file);
-            continue;
-          }
-
-          SED.AchievementRegistry.register(achievementData);
-        } catch (error) {
-          if (isLoadError(error)) {
-            errors.push("SED achievement file missing: " + file);
-          } else if (isJsonParseError(error)) {
-            errors.push("SED achievement JSON invalid: " + file + " — " + error.message);
-          } else {
-            errors.push("SED achievement error: " + file + " — " + error.message);
-          }
+    const achievementErrors = await loadRegistryEntries(
+      index.achievements,
+      "data/SmartEventDirector/achievements/",
+      function(data, file) {
+        if (!data.achievementId) {
+          return ["missing achievementId"];
         }
-      }
-    }
+        return [];
+      },
+      function(data) {
+        SED.AchievementRegistry.register(data);
+      },
+      "SED achievement"
+    );
+    errors.push.apply(errors, achievementErrors);
 
     // v1.1: Load locale strings
     if (SED.Locale && SED.Locale.loadStrings) {

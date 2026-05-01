@@ -39,7 +39,7 @@
 
   function addToBacklog(speaker, text) {
     _backlog.push({ speaker: speaker || "", text: text || "", frame: Graphics.frameCount });
-    if (_backlog.length > 200) _backlog.shift();
+    if (_backlog.length > SED.Constants.NVL_MAX_BACKLOG) _backlog.shift();
   }
 
   function getBacklog() {

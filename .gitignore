@@ -1,0 +1,16 @@
+# Dependencies
+editor/node_modules/
+
+# Python cache
+tools/__pycache__/
+*.pyc
+
+# Editor cache
+.pytest_cache/
+
+# Build outputs
+editor/build/
+
+# OS files
+.DS_Store
+Thumbs.db

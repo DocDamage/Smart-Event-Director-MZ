@@ -63,23 +63,23 @@
 
       if (variant === "press") {
         runtime.key = step.key || "ok";
-        runtime.endFrame = Graphics.frameCount + Math.max(1, Number(step.window || 60));
+        runtime.endFrame = Graphics.frameCount + Math.max(1, Number(step.window || SED.Constants.DEFAULT_QTE_WINDOW));
         showPrompt(step.prompt);
       }
 
       if (variant === "mash") {
         runtime.key = step.key || "ok";
-        runtime.target = Number(step.target || 10);
+        runtime.target = Number(step.target || SED.Constants.DEFAULT_QTE_MASH_TARGET);
         runtime.pressCount = 0;
-        runtime.endFrame = Graphics.frameCount + Math.max(1, Number(step.timeLimit || 180));
+        runtime.endFrame = Graphics.frameCount + Math.max(1, Number(step.timeLimit || SED.Constants.DEFAULT_QTE_TIME_LIMIT));
         showPrompt(step.prompt);
       }
 
       if (variant === "sequence") {
         runtime.keys = step.keys;
         runtime.index = 0;
-        runtime.endFrame = Graphics.frameCount + Math.max(1, Number(step.timeLimit || 180));
-        runtime.keyDeadline = Graphics.frameCount + Math.max(1, Number(step.sequenceWindow || 60));
+        runtime.endFrame = Graphics.frameCount + Math.max(1, Number(step.timeLimit || SED.Constants.DEFAULT_QTE_TIME_LIMIT));
+        runtime.keyDeadline = Graphics.frameCount + Math.max(1, Number(step.sequenceWindow || SED.Constants.DEFAULT_QTE_WINDOW));
         const prompts = step.prompts;
         const promptText = Array.isArray(prompts) ? prompts[0] : step.prompt;
         showPrompt(promptText);
@@ -121,7 +121,7 @@
           if (runtime.index >= runtime.keys.length) {
             return finish(context, runtime, true, step);
           }
-          runtime.keyDeadline = Graphics.frameCount + Math.max(1, Number(step.sequenceWindow || 60));
+          runtime.keyDeadline = Graphics.frameCount + Math.max(1, Number(step.sequenceWindow || SED.Constants.DEFAULT_QTE_WINDOW));
           const prompts = step.prompts;
           const promptText = Array.isArray(prompts) ? prompts[runtime.index] : step.prompt;
           $gameMessage.clear();

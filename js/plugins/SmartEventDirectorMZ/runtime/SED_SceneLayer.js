@@ -34,7 +34,7 @@
     this._activeStep = null;
     this._activeHandler = null;
     this._activeRuntime = null;
-    this._sceneTimeoutFrame = Graphics.frameCount + Number(scene.timeoutFrames || SED.Params.defaultSceneTimeout || 3600);
+    this._sceneTimeoutFrame = Graphics.frameCount + Number(scene.timeoutFrames || SED.Params.defaultSceneTimeout || SED.Constants.DEFAULT_SCENE_TIMEOUT);
     return true;
   };
 
@@ -158,4 +158,12 @@
   SED.SceneLayer = SceneLayer;
   SED.LayerManager = LayerManager;
   SED.registerModule("SceneLayer", "1.2.1");
+
+  if (SED.UpdateDispatcher) {
+    SED.UpdateDispatcher.register("LayerManager", {
+      update: function() { if (SED.LayerManager && SED.LayerManager.update) SED.LayerManager.update(); },
+      priority: 10,
+      contexts: ["map"]
+    });
+  }
 })();

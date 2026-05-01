@@ -33,7 +33,7 @@ export default function NodeCanvas({
   );
 
   return (
-    <div style={{ width: '100%', height: '100%' }}>
+    <div className="sed-canvas">
       <ReactFlow
         nodes={nodes}
         edges={edges}

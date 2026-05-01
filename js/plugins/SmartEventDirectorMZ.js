@@ -244,6 +244,7 @@
     "core/SED_Logger.js",
     "core/SED_Util.js",
     "core/SED_Locale.js",
+    "core/SED_Constants.js",
     "core/SED_ModuleLoader.js",
 
     "runtime/SED_StepRegistry.js",
@@ -256,6 +257,7 @@
     "runtime/SED_StepQueue.js",
     "runtime/SED_GraphQueue.js",
     "runtime/SED_EventBus.js",
+    "runtime/SED_UpdateDispatcher.js",
     "runtime/SED_PluginAPI.js",
     "runtime/SED_CustomStepLoader.js",
     "runtime/SED_StepContext.js",
@@ -268,13 +270,18 @@
     "runtime/SED_TextEffects.js",
     "runtime/SED_SkipRead.js",
     "runtime/SED_NVLMode.js",
+    "runtime/SED_ToastManager.js",
     "runtime/SED_Rewind.js",
     "runtime/SED_Tween.js",
     "runtime/SED_Recorder.js",
     "runtime/SED_ThemeManager.js",
     "runtime/SED_ScreenEffects.js",
-    "runtime/SED_InputBuffer.js",
+    "runtime/SED_InputManager.js",
     "runtime/SED_Runner.js",
+    "runtime/SED_RunnerState.js",
+    "runtime/SED_RunnerScene.js",
+    "runtime/SED_RunnerStack.js",
+    "runtime/SED_RunnerTransfer.js",
     "runtime/SED_Triggers.js",
     "runtime/SED_Profiler.js",
 
@@ -304,6 +311,10 @@
     "steps/SED_Step_Relationship.js",
     "runtime/SED_QuestToast.js",
     "runtime/SED_QuestTracker.js",
+    "runtime/SED_Window_QuestCategory.js",
+    "runtime/SED_Window_QuestList.js",
+    "runtime/SED_Window_QuestDetail.js",
+    "runtime/SED_Scene_QuestLog.js",
     "runtime/SED_QuestLog.js",
 
     "data/SED_AchievementRegistry.js",
@@ -406,28 +417,13 @@
   const _Scene_Map_update = Scene_Map.prototype.update;
   Scene_Map.prototype.update = function() {
     _Scene_Map_update.apply(this, arguments);
-
-    if (SED.Runner && SED.Runner.update) SED.Runner.update();
-    if (SED.LayerManager && SED.LayerManager.update) SED.LayerManager.update();
-    if (SED.Tween && SED.Tween.update) SED.Tween.update();
-    if (SED.Triggers && SED.Triggers.update) SED.Triggers.update();
-    if (SED.DebugOverlay && SED.DebugOverlay.update) SED.DebugOverlay.update();
-    if (SED.QuestToast && SED.QuestToast.update) SED.QuestToast.update();
-    if (SED.AchievementToast && SED.AchievementToast.update) SED.AchievementToast.update();
-    if (SED.QuestTracker && SED.QuestTracker.update) SED.QuestTracker.update();
-    if (SED.DialogueLog && SED.DialogueLog.update) SED.DialogueLog.update();
-    if (SED.ScreenEffects && SED.ScreenEffects.update) SED.ScreenEffects.update();
+    if (SED.UpdateDispatcher) SED.UpdateDispatcher.update("map");
   };
 
   const _Scene_Map_postUpdate = Scene_Map.prototype.postUpdate;
   Scene_Map.prototype.postUpdate = function() {
     _Scene_Map_postUpdate.apply(this, arguments);
-
-    if (SED.DebugOverlay && SED.DebugOverlay.draw) SED.DebugOverlay.draw();
-    if (SED.QuestToast && SED.QuestToast.draw) SED.QuestToast.draw();
-    if (SED.AchievementToast && SED.AchievementToast.draw) SED.AchievementToast.draw();
-    if (SED.QuestTracker && SED.QuestTracker.draw) SED.QuestTracker.draw();
-    if (SED.DialogueLog && SED.DialogueLog.draw) SED.DialogueLog.draw();
+    if (SED.UpdateDispatcher) SED.UpdateDispatcher.draw("map");
   };
 
   const _Scene_Map_updateScene = Scene_Map.prototype.updateScene;

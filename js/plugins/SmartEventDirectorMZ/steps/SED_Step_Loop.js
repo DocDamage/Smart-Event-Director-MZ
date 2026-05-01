@@ -34,7 +34,7 @@
     start(step, context) {
       const label = step.label;
       const max = Number(step.maxIterations);
-      context.setLocal(loopMaxKey(label), Number.isFinite(max) ? max : 10000);
+      context.setLocal(loopMaxKey(label), Number.isFinite(max) ? max : SED.Constants.LOOP_MAX_ITERATIONS);
 
       const count = context.getLocal(loopCountKey(label));
       if (count === undefined) {
@@ -70,7 +70,7 @@
       context.setLocal(loopCountKey(label), count);
 
       const max = context.getLocal(loopMaxKey(label));
-      const limit = Number.isFinite(max) ? max : 10000;
+      const limit = Number.isFinite(max) ? max : SED.Constants.LOOP_MAX_ITERATIONS;
 
       if (count > limit) {
         SED.Logger.warn("Loop maxIterations reached for label:", label);

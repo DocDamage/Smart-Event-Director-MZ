@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Generate SRT subtitle files from SED scene JSON."""
 
-import json
-import sys
 import argparse
+import sys
 from pathlib import Path
+from sed_common import load_json
 
 
 def format_srt_time(seconds):
@@ -21,12 +21,12 @@ def extract_dialogue(scene, default_duration=3.0):
     entries = []
     elapsed = 0.0
     steps = scene.get("steps", [])
-    nodes = scene.get("nodes", [])
 
-    # Handle both linear and graph formats
-    items = steps if steps else nodes
+    if not isinstance(steps, list):
+        print("Warning: 'steps' is not an array; using empty list.", file=sys.stderr)
+        steps = []
 
-    for item in items:
+    for item in steps:
         item_type = item.get("type", "")
         if item_type in ("dialogue", "narration"):
             text = item.get("text", "")
@@ -82,8 +82,9 @@ def main():
         print(f"Error: File not found: {input_path}", file=sys.stderr)
         sys.exit(1)
 
-    with open(input_path, "r", encoding="utf-8") as f:
-        scene = json.load(f)
+    ok, scene = load_json(input_path)
+    if not ok:
+        sys.exit(1)
 
     entries = extract_dialogue(scene, args.duration)
     if not entries:
@@ -93,8 +94,12 @@ def main():
     srt_content = generate_srt(entries)
 
     output_path = Path(args.output) if args.output else input_path.with_suffix(".srt")
-    with open(output_path, "w", encoding="utf-8") as f:
-        f.write(srt_content)
+    try:
+        with open(output_path, "w", encoding="utf-8") as f:
+            f.write(srt_content)
+    except OSError as exc:
+        print(f"Error: Cannot write {output_path}: {exc}", file=sys.stderr)
+        sys.exit(1)
 
     print(f"Generated {output_path} with {len(entries)} subtitle entries.")
 

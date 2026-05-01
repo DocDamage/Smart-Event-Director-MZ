@@ -1,106 +1,143 @@
 * { box-sizing: border-box; }
 body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
 
-.app {
+:root {
+  --sed-bg-primary: #1e1e1e;
+  --sed-bg-secondary: #252526;
+  --sed-bg-tertiary: #3c3c3c;
+  --sed-border-default: #333;
+  --sed-border-input: #555;
+  --sed-text-primary: #fff;
+  --sed-text-secondary: #ccc;
+  --sed-text-muted: #9ca3af;
+  --sed-accent-primary: #0e639c;
+  --sed-accent-success: #22c55e;
+  --sed-accent-danger: #ef4444;
+  --sed-radius-sm: 4px;
+  --sed-spacing-sm: 6px;
+  --sed-spacing-md: 12px;
+  --sed-font-size-sm: 11px;
+  --sed-font-size-md: 12px;
+  --sed-font-size-lg: 13px;
+  --sed-font-size-xl: 16px;
+}
+
+/* App shell */
+.sed-app {
   display: flex;
-  height: 100vh;
+  flex-direction: column;
   width: 100vw;
+  height: 100vh;
+  background: var(--sed-bg-primary);
+}
+
+.sed-workspace {
+  display: flex;
+  flex: 1;
   overflow: hidden;
 }
 
-.sidebar {
-  width: 180px;
-  background: #f3f4f6;
-  border-right: 1px solid #e5e7eb;
-  display: flex;
-  flex-direction: column;
-}
-
-.sidebar h3 {
-  margin: 0;
-  padding: 12px;
-  font-size: 14px;
-  background: #e5e7eb;
-  border-bottom: 1px solid #d1d5db;
-}
-
-.palette {
-  overflow-y: auto;
-  padding: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.palette-btn {
-  text-align: left;
-  padding: 8px 10px;
-  border: 1px solid #e5e7eb;
-  background: #fff;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 12px;
-  transition: background 0.15s;
-}
-
-.palette-btn:hover {
-  background: #f9fafb;
-}
-
-.main {
+.sed-canvas-wrap {
   flex: 1;
+}
+
+.sed-canvas-wrap .sed-canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.sed-right-panel {
+  width: 320px;
   display: flex;
   flex-direction: column;
-  min-width: 0;
+  border-left: 1px solid var(--sed-border-default);
+  background: var(--sed-bg-secondary);
 }
 
-.toolbar {
-  padding: 10px 12px;
-  border-bottom: 1px solid #e5e7eb;
+/* Toolbar */
+.sed-toolbar {
   display: flex;
-  gap: 8px;
-  background: #fff;
+  align-items: center;
+  gap: var(--sed-spacing-md);
+  padding: 8px 16px;
+  background: var(--sed-bg-secondary);
+  border-bottom: 1px solid var(--sed-border-default);
+  flex-wrap: wrap;
 }
 
-.toolbar button {
+.sed-toolbar-brand {
+  color: var(--sed-text-primary);
+  font-weight: bold;
+  font-size: var(--sed-font-size-xl);
+}
+
+.sed-toolbar-steps {
+  margin-left: auto;
+  display: flex;
+  gap: var(--sed-spacing-sm);
+  flex-wrap: wrap;
+}
+
+/* Buttons */
+.sed-btn {
   padding: 6px 12px;
-  border: 1px solid #d1d5db;
-  background: #fff;
-  border-radius: 4px;
+  background: var(--sed-bg-tertiary);
+  color: var(--sed-text-primary);
+  border: 1px solid var(--sed-border-input);
+  border-radius: var(--sed-radius-sm);
   cursor: pointer;
-  font-size: 12px;
+  font-size: var(--sed-font-size-md);
 }
 
-.toolbar button:hover {
-  background: #f3f4f6;
+.sed-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
-.canvas-wrap {
-  flex: 1;
-  position: relative;
+.sed-btn-primary {
+  background: var(--sed-accent-primary);
+  border: none;
 }
 
-.right-panel {
-  width: 260px;
-  background: #f9fafb;
-  border-left: 1px solid #e5e7eb;
-  overflow-y: auto;
+.sed-btn-danger {
+  background: var(--sed-accent-danger);
+  border: none;
 }
 
+.sed-btn-sm {
+  padding: 4px 8px;
+  font-size: var(--sed-font-size-sm);
+}
+
+/* Inputs */
+.sed-input {
+  background: var(--sed-bg-tertiary);
+  border: 1px solid var(--sed-border-input);
+  color: var(--sed-text-primary);
+  padding: 4px;
+  border-radius: var(--sed-radius-sm);
+  font-size: var(--sed-font-size-md);
+}
+
+.sed-input-file {
+  font-size: var(--sed-font-size-md);
+}
+
+/* Panel */
 .panel {
-  padding: 12px;
+  padding: var(--sed-spacing-md);
 }
 
 .panel h4 {
-  margin: 0 0 12px;
-  font-size: 13px;
+  margin: 0 0 var(--sed-spacing-md);
+  font-size: var(--sed-font-size-lg);
   text-transform: capitalize;
 }
 
 .node-id {
-  color: #9ca3af;
+  color: var(--sed-text-muted);
   font-weight: 400;
-  font-size: 11px;
+  font-size: var(--sed-font-size-sm);
   margin-left: 4px;
 }
 
@@ -110,7 +147,7 @@ body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Ro
 
 .field label {
   display: block;
-  font-size: 11px;
+  font-size: var(--sed-font-size-sm);
   font-weight: 600;
   color: #4b5563;
   margin-bottom: 4px;
@@ -122,8 +159,8 @@ body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Ro
   width: 100%;
   padding: 5px 6px;
   border: 1px solid #d1d5db;
-  border-radius: 4px;
-  font-size: 12px;
+  border-radius: var(--sed-radius-sm);
+  font-size: var(--sed-font-size-md);
   font-family: inherit;
 }
 
@@ -150,9 +187,111 @@ body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Ro
 
 .option-row button {
   padding: 2px 6px;
-  font-size: 12px;
+  font-size: var(--sed-font-size-md);
   border: 1px solid #d1d5db;
   background: #fff;
-  border-radius: 4px;
+  border-radius: var(--sed-radius-sm);
   cursor: pointer;
+}
+
+/* Playtest panel */
+.sed-playtest-panel {
+  border-top: 1px solid var(--sed-border-default);
+  padding: var(--sed-spacing-md);
+}
+
+.sed-playtest-title {
+  color: var(--sed-text-primary);
+  font-weight: bold;
+  font-size: var(--sed-font-size-lg);
+  margin-bottom: 8px;
+}
+
+.sed-playtest-controls {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.sed-playtest-step {
+  background: var(--sed-bg-primary);
+  border-radius: var(--sed-radius-sm);
+  padding: 8px;
+  font-size: var(--sed-font-size-md);
+  color: var(--sed-text-secondary);
+}
+
+.sed-playtest-step-header {
+  color: var(--sed-text-primary);
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.sed-playtest-step-type {
+  color: #a855f7;
+  margin-bottom: 4px;
+}
+
+.sed-playtest-step-data {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+  font-size: var(--sed-font-size-sm);
+}
+
+/* Step Nodes */
+.sed-node-card {
+  width: 150px;
+  background: #fff;
+  border-radius: 6px;
+  font-size: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+.sed-node-card.selected {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.27);
+}
+
+.sed-node-header {
+  color: #fff;
+  padding: 4px 6px;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+}
+
+.sed-node-preview {
+  padding: 6px;
+  color: #374151;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 18px;
+}
+
+.sed-node-error {
+  padding: 0 6px 4px;
+  font-size: 10px;
+  color: var(--sed-accent-danger);
+}
+
+.sed-node-options {
+  padding: 0 6px 6px;
+}
+
+.sed-node-option {
+  position: relative;
+  font-size: 10px;
+  color: #4b5563;
+  padding: 2px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sed-handle {
+  width: 8px;
+  height: 8px;
 }

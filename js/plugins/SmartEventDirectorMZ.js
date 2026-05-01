@@ -270,6 +270,7 @@
     "runtime/SED_NVLMode.js",
     "runtime/SED_Rewind.js",
     "runtime/SED_Tween.js",
+    "runtime/SED_Recorder.js",
     "runtime/SED_ThemeManager.js",
     "runtime/SED_ScreenEffects.js",
     "runtime/SED_InputBuffer.js",

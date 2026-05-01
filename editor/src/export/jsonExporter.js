@@ -1,98 +1,67 @@
 export function exportScene(nodes, edges, sceneData) {
-  const sorted = [...nodes].sort((a, b) => a.position.x - b.position.x || a.position.y - b.position.y);
-  const outEdges = {};
-  edges.forEach((e) => {
-    if (!outEdges[e.source]) outEdges[e.source] = [];
-    outEdges[e.source].push(e);
+  const nodeMap = new Map();
+  nodes.forEach(n => nodeMap.set(n.id, n));
+
+  const outEdges = new Map();
+  edges.forEach(e => {
+    if (!outEdges.has(e.source)) outEdges.set(e.source, []);
+    outEdges.get(e.source).push(e);
   });
 
-  const steps = sorted.map((node) => {
-    const step = { ...node.data };
-    const srcEdges = outEdges[node.id] || [];
-
-    if (step.type === 'jump') {
-      const edge = srcEdges.find((e) => {
-        const target = sorted.find((n) => n.id === e.target);
-        return target && target.data.type === 'label';
-      });
-      if (edge) {
-        const target = sorted.find((n) => n.id === edge.target);
-        if (target) step.label = target.data.name;
-      }
-    }
-
-    if (step.type === 'choice') {
-      if (Array.isArray(step.options)) {
-        step.options = step.options.map((opt, idx) => {
-          const edge = srcEdges.find((e) => e.sourceHandle === `option-${idx}`);
-          if (edge) {
-            const target = sorted.find((n) => n.id === edge.target);
-            if (target && target.data.type === 'label') {
-              return { ...opt, jump: target.data.name };
-            }
-          }
-          return { ...opt };
-        });
-      }
-    }
-
-    if (step.type === 'condition') {
-      const trueEdge = srcEdges.find((e) => e.sourceHandle === 'true');
-      const falseEdge = srcEdges.find((e) => e.sourceHandle === 'false');
-      if (trueEdge) {
-        const target = sorted.find((n) => n.id === trueEdge.target);
-        if (target && target.data.type === 'label') step.jumpTrue = target.data.name;
-      }
-      if (falseEdge) {
-        const target = sorted.find((n) => n.id === falseEdge.target);
-        if (target && target.data.type === 'label') step.jumpFalse = target.data.name;
-      }
-    }
-
-    return step;
+  const sceneNodes = nodes.map(n => {
+    const data = { ...n.data };
+    delete data._validationErrors;
+    delete data._playtestActive;
+    return { id: n.id, ...data };
   });
+
+  const sceneEdges = edges.map(e => ({
+    id: e.id,
+    source: e.source,
+    target: e.target,
+    ...(e.label ? { label: e.label } : {}),
+    ...(e.data?.condition ? { condition: e.data.condition } : {}),
+  }));
 
   const result = {
-    schema: 'SED_SCENE_1',
+    schema: 'SED_SCENE_2',
     sceneId: sceneData.sceneId || 'new_scene',
     title: sceneData.title || '',
-    steps,
+    nodes: sceneNodes,
+    edges: sceneEdges,
   };
 
   if (sceneData.canSkip !== undefined) result.canSkip = sceneData.canSkip;
   if (sceneData.timeoutFrames !== undefined) result.timeoutFrames = sceneData.timeoutFrames;
+  if (sceneData.context) result.context = sceneData.context;
+  if (sceneData.layer) result.layer = sceneData.layer;
+  if (sceneData.priority !== undefined) result.priority = sceneData.priority;
+  if (sceneData.triggers) result.triggers = sceneData.triggers;
 
-  return result;
+  return { json: result, issues: validateScene(nodes, edges) };
 }
 
 export function validateScene(nodes, edges) {
   const errors = [];
-  const labels = new Set();
+  const nodeIds = new Set(nodes.map(n => n.id));
+  const hasIncoming = new Set();
 
-  nodes.forEach((n) => {
-    if (n.data.type === 'label' && n.data.name) labels.add(n.data.name);
+  edges.forEach(e => {
+    if (!nodeIds.has(e.source)) errors.push(`Edge ${e.id} source not found: ${e.source}`);
+    if (!nodeIds.has(e.target)) errors.push(`Edge ${e.id} target not found: ${e.target}`);
+    hasIncoming.add(e.target);
   });
 
-  nodes.forEach((n) => {
-    if (n.data.type === 'jump') {
-      const edge = edges.find((e) => e.source === n.id);
-      if (!edge) {
-        errors.push(`Jump node ${n.id} has no target edge.`);
-      } else {
-        const target = nodes.find((node) => node.id === edge.target);
-        if (!target || target.data.type !== 'label') {
-          errors.push(`Jump node ${n.id} target is not a label.`);
-        } else if (!labels.has(target.data.name)) {
-          errors.push(`Jump node ${n.id} references unknown label "${target.data.name}".`);
-        }
-      }
-    }
+  const startNodes = nodes.filter(n => !hasIncoming.has(n.id));
+  if (startNodes.length === 0 && nodes.length > 0) {
+    errors.push('No start node found (all nodes have incoming edges).');
+  }
+  if (startNodes.length > 1) {
+    errors.push('Multiple start nodes: ' + startNodes.map(n => n.id).join(', '));
+  }
 
-    if (n.data.type === 'choice') {
-      if (!Array.isArray(n.data.options) || n.data.options.length === 0) {
-        errors.push(`Choice node ${n.id} has no options.`);
-      }
-    }
+  nodes.forEach(n => {
+    if (!n.data.type) errors.push(`Node ${n.id} missing type.`);
   });
 
   return errors;

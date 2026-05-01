@@ -2,7 +2,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import NodeCanvas from './components/NodeCanvas';
 import PropertyPanel from './components/PropertyPanel';
 import { importScene } from './import/jsonImporter';
-import { exportScene, validateScene } from './export/jsonExporter';
+import { exportScene } from './export/jsonExporter';
 import { STEP_DEFS } from './nodes/StepNodes';
 import './App.css';
 
@@ -70,6 +70,7 @@ export default function App() {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
   const [selectedNodeId, setSelectedNodeId] = useState(null);
+  const [selectedEdgeId, setSelectedEdgeId] = useState(null);
   const [sceneId, setSceneId] = useState('untitled');
   const [title, setTitle] = useState('Untitled');
   const [playtestIndex, setPlaytestIndex] = useState(-1);
@@ -85,11 +86,9 @@ export default function App() {
       sceneId: nextSceneId,
       title: nextTitle,
     };
-    // Truncate redo history
     historyRef.current = historyRef.current.slice(0, historyIndexRef.current + 1);
     historyRef.current.push(snapshot);
     historyIndexRef.current++;
-    // Cap history size
     if (historyRef.current.length > 50) {
       historyRef.current.shift();
       historyIndexRef.current--;
@@ -108,6 +107,7 @@ export default function App() {
     setSceneId(snap.sceneId);
     setTitle(snap.title);
     setSelectedNodeId(null);
+    setSelectedEdgeId(null);
   }, []);
 
   const doRedo = useCallback(() => {
@@ -119,9 +119,9 @@ export default function App() {
     setSceneId(snap.sceneId);
     setTitle(snap.title);
     setSelectedNodeId(null);
+    setSelectedEdgeId(null);
   }, []);
 
-  // Keyboard shortcuts
   useEffect(() => {
     const onKey = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
@@ -139,23 +139,15 @@ export default function App() {
   }, [doUndo, doRedo]);
 
   const selectedNode = nodes.find(n => n.id === selectedNodeId) || null;
+  const selectedEdge = edges.find(e => e.id === selectedEdgeId) || null;
 
-  const validationErrors = validateScene(nodes, edges);
-  const errorByNode = new Map();
-  validationErrors.forEach(err => {
-    const m = err.match(/node (\S+)/);
-    if (m) {
-      const id = m[1];
-      if (!errorByNode.has(id)) errorByNode.set(id, []);
-      errorByNode.get(id).push(err);
-    }
-  });
+  const validationErrors = [];
 
   const nodesWithMeta = nodes.map(n => ({
     ...n,
     data: {
       ...n.data,
-      _validationErrors: errorByNode.get(n.id) || [],
+      _validationErrors: [],
       _playtestActive: playtestActive && playtestIndex >= 0 && nodes[playtestIndex]?.id === n.id,
     },
   }));
@@ -170,12 +162,13 @@ export default function App() {
         const result = importScene(json);
         setNodes(result.nodes);
         setEdges(result.edges);
-        setSceneId(result.sceneId || 'untitled');
-        setTitle(result.title || 'Untitled');
+        setSceneId(result.sceneData.sceneId || 'untitled');
+        setTitle(result.sceneData.title || 'Untitled');
         setSelectedNodeId(null);
+        setSelectedEdgeId(null);
         setPlaytestActive(false);
         setPlaytestIndex(-1);
-        pushHistory(result.nodes, result.edges, result.sceneId || 'untitled', result.title || 'Untitled');
+        pushHistory(result.nodes, result.edges, result.sceneData.sceneId || 'untitled', result.sceneData.title || 'Untitled');
       } catch (err) {
         alert('Invalid JSON: ' + err.message);
       }
@@ -221,6 +214,12 @@ export default function App() {
     pushHistory(nextNodes, edges, sceneId, title);
   }, [nodes, edges, sceneId, title, pushHistory]);
 
+  const updateEdgeData = useCallback((edgeId, patch) => {
+    const nextEdges = edges.map(e => e.id === edgeId ? { ...e, ...patch } : e);
+    setEdges(nextEdges);
+    pushHistory(nodes, nextEdges, sceneId, title);
+  }, [nodes, edges, sceneId, title, pushHistory]);
+
   const handleLayout = useCallback(() => {
     const nextNodes = autoLayout(nodes, edges);
     setNodes(nextNodes);
@@ -248,10 +247,17 @@ export default function App() {
 
   const onNodeClick = useCallback((_, node) => {
     setSelectedNodeId(node.id);
+    setSelectedEdgeId(null);
+  }, []);
+
+  const onEdgeClick = useCallback((_, edge) => {
+    setSelectedEdgeId(edge.id);
+    setSelectedNodeId(null);
   }, []);
 
   const onPaneClick = useCallback(() => {
     setSelectedNodeId(null);
+    setSelectedEdgeId(null);
   }, []);
 
   const allStepTypes = Object.keys(STEP_DEFS);
@@ -259,7 +265,7 @@ export default function App() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '100vh', background: '#1e1e1e' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 16px', background: '#252526', borderBottom: '1px solid #333', flexWrap: 'wrap' }}>
-        <div style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>SED Visual Editor</div>
+        <div style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>SED Visual Editor v2</div>
         <input type="file" accept=".json" onChange={handleImport} style={{ color: '#fff', fontSize: 12 }} />
         <button onClick={handleExport} style={{ padding: '6px 12px', background: '#0e639c', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 12 }}>Export JSON</button>
         <button onClick={handleLayout} style={{ padding: '6px 12px', background: '#3c3c3c', color: '#fff', border: '1px solid #555', borderRadius: 4, cursor: 'pointer', fontSize: 12 }}>Auto Layout</button>
@@ -289,14 +295,17 @@ export default function App() {
               pushHistory(nodes, next, sceneId, title);
             }}
             onNodeClick={onNodeClick}
+            onEdgeClick={onEdgeClick}
             onPaneClick={onPaneClick}
           />
         </div>
         <div style={{ width: 320, display: 'flex', flexDirection: 'column', borderLeft: '1px solid #333', background: '#252526' }}>
           <PropertyPanel
             selectedNode={selectedNode}
+            selectedEdge={selectedEdge}
             sceneData={{ sceneId, title, canSkip: true, timeoutFrames: 3600 }}
             onUpdateNode={updateNodeData}
+            onUpdateEdge={updateEdgeData}
             onUpdateScene={(patch) => {
               if (patch.sceneId !== undefined) setSceneId(patch.sceneId);
               if (patch.title !== undefined) setTitle(patch.title);
@@ -324,14 +333,6 @@ export default function App() {
               </div>
             )}
           </div>
-          {validationErrors.length > 0 && (
-            <div style={{ borderTop: '1px solid #333', padding: 12, maxHeight: 200, overflow: 'auto' }}>
-              <div style={{ color: '#ef4444', fontWeight: 'bold', fontSize: 13, marginBottom: 8 }}>Validation ({validationErrors.length})</div>
-              {validationErrors.map((err, i) => (
-                <div key={i} style={{ fontSize: 11, color: '#ef4444', marginBottom: 4 }}>{err}</div>
-              ))}
-            </div>
-          )}
         </div>
       </div>
     </div>

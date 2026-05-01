@@ -125,6 +125,10 @@
       SED.Save.markPlayed(sceneId);
       SED.Logger.info("Scene started:", sceneId);
 
+      if (SED.Recorder && SED.Recorder.isRecording && SED.Recorder.isRecording()) {
+        SED.Recorder.log("sceneStart", { sceneId: sceneId });
+      }
+
       return true;
     },
 
@@ -296,6 +300,11 @@
       // v2.0: emit step completion event
       if (SED.EventBus) {
         SED.EventBus.emit("stepEnd", { sceneId: this._scene.sceneId, nodeId: this._queue.currentNodeId() });
+      }
+
+      // v2.0: recorder log
+      if (SED.Recorder && SED.Recorder.isRecording && SED.Recorder.isRecording() && this._activeStep) {
+        SED.Recorder.log(this._activeStep.type, SED.Util.cloneJson(this._activeStep));
       }
 
       this._activeStep = null;

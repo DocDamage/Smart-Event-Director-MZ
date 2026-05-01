@@ -16,6 +16,7 @@ export default function NodeCanvas({
   setNodes,
   setEdges,
   onNodeClick,
+  onEdgeClick,
   onPaneClick,
 }) {
   const onNodesChange = useCallback(
@@ -40,6 +41,7 @@ export default function NodeCanvas({
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         onNodeClick={onNodeClick}
+        onEdgeClick={onEdgeClick}
         onPaneClick={onPaneClick}
         nodeTypes={nodeTypes}
         fitView

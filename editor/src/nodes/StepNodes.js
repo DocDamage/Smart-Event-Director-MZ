@@ -3,6 +3,7 @@ import { Handle, Position } from 'reactflow';
 
 const CATEGORY_COLORS = {
   dialogue: '#3b82f6',
+  narration: '#3b82f6',
   choice: '#22c55e',
   flow: '#eab308',
   visual: '#a855f7',
@@ -19,6 +20,7 @@ const CATEGORY_COLORS = {
 
 const STEP_CATEGORIES = {
   dialogue: 'dialogue',
+  narration: 'narration',
   choice: 'choice',
   jump: 'flow',
   label: 'flow',
@@ -42,6 +44,8 @@ const STEP_CATEGORIES = {
   lockPlayer: 'system',
   unlockPlayer: 'system',
   moveRoute: 'movement',
+  moveOneTile: 'movement',
+  moveTo: 'movement',
   startQuest: 'quest',
   relationship: 'quest',
   commonEvent: 'system',
@@ -51,9 +55,6 @@ const STEP_CATEGORIES = {
   preload: 'system',
   script: 'logic',
   comment: 'system',
-  narration: 'dialogue',
-  moveOneTile: 'movement',
-  moveTo: 'movement',
 };
 
 function getPreview(data) {

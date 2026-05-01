@@ -190,7 +190,7 @@
  *
  * @help
  * ============================================================
- * Smart Event Director MZ - v1.1.0
+ * Smart Event Director MZ - v1.2.0
  * ============================================================
  * Modular cutscene/story runner via JSON scene files.
  *

@@ -5,6 +5,7 @@
 
   SED.Tween = {
     _tweens: [],
+    _idCounter: 1,
 
     easings: {
       linear(t) {
@@ -29,6 +30,7 @@
 
     to(obj, properties, duration, easing, onComplete) {
       const tween = {
+        _id: this._idCounter++,
         obj: obj,
         start: {},
         end: {},
@@ -45,6 +47,25 @@
       }
       this._tweens.push(tween);
       return tween;
+    },
+
+    stop(tweenOrId) {
+      if (!tweenOrId) return;
+      const id = typeof tweenOrId === "number" ? tweenOrId : tweenOrId._id;
+      const idx = this._tweens.findIndex(t => t._id === id);
+      if (idx >= 0) this._tweens.splice(idx, 1);
+    },
+
+    stopAllForObject(obj) {
+      for (let i = this._tweens.length - 1; i >= 0; i--) {
+        if (this._tweens[i].obj === obj) {
+          this._tweens.splice(i, 1);
+        }
+      }
+    },
+
+    clear() {
+      this._tweens.length = 0;
     },
 
     update() {
@@ -71,14 +92,10 @@
       }
     },
 
-    clear() {
-      this._tweens.length = 0;
-    },
-
     activeCount() {
       return this._tweens.length;
     }
   };
 
-  SED.registerModule("Tween", "1.0.0");
+  SED.registerModule("Tween", "1.2.0");
 })();

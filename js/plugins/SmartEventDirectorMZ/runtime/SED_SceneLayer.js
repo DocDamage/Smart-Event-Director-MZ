@@ -3,8 +3,6 @@
 
   const SED = window.SED;
 
-  // A lightweight scene runner for parallel layers.
-  // Does NOT support: call stacks, transfer resume, save snapshots, scene queue.
   function SceneLayer(layerId, priority) {
     this.layerId = layerId;
     this.priority = priority;
@@ -144,7 +142,20 @@
     }
   };
 
+  // Auto-stop all layers on map transfer or battle start
+  const _Game_Player_reserveTransfer = Game_Player.prototype.reserveTransfer;
+  Game_Player.prototype.reserveTransfer = function(mapId, x, y, d, fadeType) {
+    _Game_Player_reserveTransfer.apply(this, arguments);
+    if (SED.LayerManager) SED.LayerManager.stopAll();
+  };
+
+  const _Scene_Battle_start = Scene_Battle.prototype.start;
+  Scene_Battle.prototype.start = function() {
+    _Scene_Battle_start.apply(this, arguments);
+    if (SED.LayerManager) SED.LayerManager.stopAll();
+  };
+
   SED.SceneLayer = SceneLayer;
   SED.LayerManager = LayerManager;
-  SED.registerModule("SceneLayer", "1.2.0");
+  SED.registerModule("SceneLayer", "1.2.1");
 })();

@@ -159,6 +159,9 @@
         }
       }
 
+      if (SED.Tween) SED.Tween.clear();
+      if (SED.VoiceManager) SED.VoiceManager.stop();
+
       SED.Cleanup.restore();
       SED.Logger.info("Scene stopped:", reason);
       this._forceIdle();
@@ -183,6 +186,9 @@
           SED.Logger.error("Error during step cancel:", error.message);
         }
       }
+
+      if (SED.Tween) SED.Tween.clear();
+      if (SED.VoiceManager) SED.VoiceManager.stop();
 
       this._forceIdle();
     },
@@ -379,5 +385,5 @@
   };
 
   SED.Runner = Runner;
-  SED.registerModule("Runner", "1.1.0");
+  SED.registerModule("Runner", "1.2.1");
 })();

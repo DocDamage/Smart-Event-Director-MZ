@@ -1276,3 +1276,193 @@ Preloads images and audio assets before they are needed, preventing frame hitche
 - The step waits until all listed assets report loaded before finishing.
 - Image paths should be relative to the project root (e.g., `img/pictures/name.png`).
 - Audio `type` can be `"bgm"`, `"bgs"`, `"me"`, or `"se"`.
+
+---
+
+### `bust`
+
+Shows, hides, or moves a character bust portrait on screen.
+
+**Schema**
+
+| Field | Type | Required | Default |
+|---|---|---|---|
+| `type` | string | yes | `"bust"` |
+| `character` | string | yes | — |
+| `emotion` | string | no | `"neutral"` |
+| `position` | string | no | `"left"` |
+| `action` | string | no | `"show"` |
+| `enter` | string | no | — |
+| `exit` | string | no | — |
+
+**Example**
+
+```json
+{
+  "type": "bust",
+  "character": "mira",
+  "emotion": "shocked",
+  "position": "left",
+  "action": "show",
+  "enter": "slide"
+}
+```
+
+**Notes**
+- Bust images load from `img/pictures/` using the pattern `character_emotion.png` (e.g., `mira_shocked.png`), falling back to `character.png`.
+- `action` can be `"show"`, `"hide"`, or `"move"`.
+- `enter` animations: `"slide"`, `"slideLeft"`, `"slideRight"`, `"fadeIn"`.
+- `exit` animations: `"slideOut"`, `"slideOutLeft"`, `"slideOutRight"`, `"fadeOut"`.
+- Dialogue steps can auto-update bust emotion and focus via the `bust` and `emotion` fields.
+
+---
+
+### `qte`
+
+Quick-Time Event mini-game step. Supports press, mash, and sequence variants.
+
+**Schema**
+
+| Field | Type | Required | Default |
+|---|---|---|---|
+| `type` | string | yes | `"qte"` |
+| `variant` | string | yes | — |
+| `prompt` | string | no | — |
+| `key` | string | no | `"ok"` |
+| `window` | number | no | `60` |
+| `target` | number | no | `10` |
+| `timeLimit` | number | no | `180` |
+| `keys` | string[] | no | — |
+| `successJump` | string | no | — |
+| `failJump` | string | no | — |
+| `storeResult` | boolean | no | `false` |
+
+**Example — Press Variant**
+
+```json
+{
+  "type": "qte",
+  "variant": "press",
+  "prompt": "Press OK to dodge!",
+  "key": "ok",
+  "window": 60,
+  "successJump": "dodge",
+  "failJump": "hit"
+}
+```
+
+**Example — Mash Variant**
+
+```json
+{
+  "type": "qte",
+  "variant": "mash",
+  "prompt": "Mash OK to escape!",
+  "key": "ok",
+  "target": 15,
+  "timeLimit": 180,
+  "successJump": "free",
+  "failJump": "caught"
+}
+```
+
+**Example — Sequence Variant**
+
+```json
+{
+  "type": "qte",
+  "variant": "sequence",
+  "prompts": ["Up!", "Down!", "Left!", "Right!"],
+  "keys": ["up", "down", "left", "right"],
+  "timeLimit": 240
+}
+```
+
+**Notes**
+- `variant` must be `"press"`, `"mash"`, or `"sequence"`.
+- `key` uses RPG Maker input names: `"ok"`, `"cancel"`, `"shift"`, `"up"`, `"down"`, `"left"`, `"right"`.
+- On success, jumps to `successJump` label. On failure, jumps to `failJump`.
+- If `storeResult` is `true`, the result is stored in context local `"qteResult"`.
+
+---
+
+### `timeline`
+
+Keyframe-based animation timeline for the camera (and future targets).
+
+**Schema**
+
+| Field | Type | Required | Default |
+|---|---|---|---|
+| `type` | string | yes | `"timeline"` |
+| `target` | string | yes | `"camera"` |
+| `keyframes` | array | yes | — |
+| `keyframes[].frame` | number | yes | — |
+| `keyframes[].x` | number | no | — |
+| `keyframes[].y` | number | no | — |
+| `keyframes[].zoom` | number | no | — |
+| `keyframes[].easing` | string | no | `"linear"` |
+
+**Example**
+
+```json
+{
+  "type": "timeline",
+  "target": "camera",
+  "keyframes": [
+    { "frame": 0, "x": 0, "y": 0, "zoom": 1.0 },
+    { "frame": 60, "x": 500, "y": 300, "zoom": 1.5, "easing": "easeInOut" },
+    { "frame": 120, "x": 0, "y": 0, "zoom": 1.0, "easing": "easeOut" }
+  ]
+}
+```
+
+**Notes**
+- Keyframes are sorted by `frame` automatically.
+- The timeline waits until all keyframe tweens complete.
+- Easing options: `"linear"`, `"easeIn"`, `"easeOut"`, `"easeInOut"`, `"easeInQuad"`, `"easeOutQuad"`.
+
+---
+
+### `unlockAchievement`
+
+Unlocks an achievement by ID. Triggers a toast notification on first unlock.
+
+**Schema**
+
+| Field | Type | Required | Default |
+|---|---|---|---|
+| `type` | string | yes | `"unlockAchievement"` |
+| `achievementId` | string | yes | — |
+
+**Example**
+
+```json
+{
+  "type": "unlockAchievement",
+  "achievementId": "first_blood"
+}
+```
+
+**Notes**
+- Achievement data must be defined in a JSON file under `data/SmartEventDirector/achievements/`.
+- Only triggers the toast the first time the achievement is unlocked.
+- Achievement state persists in save files.
+
+---
+
+## Updated Step Type List
+
+Complete list of all step types as of v1.2:
+
+**Core:** dialogue, narration, choice, wait, switch, variable  
+**Movement:** moveOneTile, moveTo, moveRoute, lockPlayer, unlockPlayer  
+**Flow:** label, jump, loop, endLoop, condition, script, comment  
+**Scene:** callScene, return, checkpoint, preload  
+**Visual:** fade, fadeIn, fadeOut, picture, camera, weather, transition, titleCard, bust, timeline  
+**Audio:** audio  
+**Quest:** startQuest, updateObjective, completeQuest, failQuest, questReward  
+**Relationship:** relationship  
+**QTE:** qte  
+**Achievement:** unlockAchievement  
+**System:** commonEvent, selfSwitch

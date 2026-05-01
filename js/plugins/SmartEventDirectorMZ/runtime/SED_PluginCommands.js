@@ -170,15 +170,18 @@
   Window_MenuCommand.prototype.makeCommandList = function() {
     _Window_MenuCommand_makeCommandList.apply(this, arguments);
 
-    if (SED.Params && SED.Params.enableQuestLog !== false) {
+    // Deduplication: avoid adding commands twice if another plugin also patched makeCommandList
+    const hasCmd = sym => this._list && this._list.some(c => c && c.symbol === sym);
+
+    if (SED.Params && SED.Params.enableQuestLog !== false && !hasCmd("questLog")) {
       this.addCommand("Quest Log", "questLog", true);
     }
 
-    if (SED.Params && SED.Params.enableRelationshipViewer) {
+    if (SED.Params && SED.Params.enableRelationshipViewer && !hasCmd("relationships")) {
       this.addCommand("Relationships", "relationships", true);
     }
 
-    if (SED.Params && SED.Params.enableAchievementViewer) {
+    if (SED.Params && SED.Params.enableAchievementViewer && !hasCmd("achievements")) {
       this.addCommand("Achievements", "achievements", true);
     }
   };

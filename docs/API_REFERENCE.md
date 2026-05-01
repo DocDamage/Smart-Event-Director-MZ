@@ -353,3 +353,151 @@ SED handles several common edge cases automatically:
 - **Audio & picture state** — `snapshot()` / `restore()` ensures BGM/BGS and pictures are returned to their pre-scene states on stop or failure.
 - **Duplicate scene start** — If a scene is already running, `play()` returns `false` (or queues the scene if `allowSceneQueue` is enabled).
 - **Invalid JSON / missing files** — `DataLoader` catches load and parse errors and reports them via `SED.Logger.error`.
+
+---
+
+## v1.2 APIs
+
+### `SED.AchievementRegistry`
+
+```js
+SED.AchievementRegistry.register(achievement)
+SED.AchievementRegistry.get(achievementId)
+SED.AchievementRegistry.has(achievementId)
+SED.AchievementRegistry.list()
+```
+
+### `SED.AchievementState`
+
+```js
+SED.AchievementState.unlock(achievementId)     // => boolean (true if first unlock)
+SED.AchievementState.isUnlocked(achievementId) // => boolean
+SED.AchievementState.getAll()                  // => object { achievementId: boolean, ... }
+SED.AchievementState.reset(achievementId)
+```
+
+### `SED.AchievementViewer`
+
+```js
+SED.AchievementViewer.open()   // pushes the achievement viewer scene
+```
+
+### `SED.AchievementToast`
+
+On-screen toast notifications for achievement unlocks. Triggered automatically by `AchievementState.unlock()`.
+
+### `SED.BustManager`
+
+```js
+SED.BustManager.show(character, emotion, position, enter)
+SED.BustManager.hide(character, exit)
+SED.BustManager.move(character, position)
+SED.BustManager.clearAll()
+```
+
+Bust images load from `img/pictures/` as `character_emotion.png`, falling back to `character.png`.
+
+### `SED.VoiceManager`
+
+```js
+SED.VoiceManager.play(name)   // plays SE, ducks BGM to 30%
+SED.VoiceManager.stop()       // stops active voice SE and restores BGM
+```
+
+### `SED.ScreenEffects`
+
+```js
+SED.ScreenEffects.zoom(scale, duration, easing)
+SED.ScreenEffects.shake(power, speed, duration)
+SED.ScreenEffects.resetZoom(duration, easing)
+SED.ScreenEffects.clearAll()
+```
+
+Easing options: `"linear"`, `"easeIn"`, `"easeOut"`, `"easeInOut"`, `"easeInQuad"`, `"easeOutQuad"`.
+
+### `SED.Triggers`
+
+```js
+SED.Triggers.register(sceneId, triggerConfig)
+SED.Triggers.unregister(sceneId)
+SED.Triggers.clearAll()
+SED.Triggers.update()   // called automatically each frame
+```
+
+Trigger types: `mapEnter`, `proximity`, `switch`, `variable`.
+
+### `SED.Tween`
+
+```js
+SED.Tween.to(obj, properties, duration, easing, onComplete) // => tween object
+SED.Tween.stop(tweenOrId)
+SED.Tween.stopAllForObject(obj)
+SED.Tween.clear()
+SED.Tween.update()      // called automatically each frame
+SED.Tween.activeCount()
+```
+
+### `SED.LayerManager`
+
+```js
+SED.LayerManager.play(sceneId, options) // => layerId | null
+SED.LayerManager.stop(layerId)
+SED.LayerManager.stopAll()
+SED.LayerManager.isBusy()
+SED.LayerManager.list()
+```
+
+Options: `{ priority: number }`. Layers auto-stop on map transfer and battle start.
+
+### `SED.ThemeManager`
+
+```js
+SED.ThemeManager.push(themeId)
+SED.ThemeManager.pop()
+SED.ThemeManager.clear()
+```
+
+Themes override window skin, font face, and text color. Applied automatically when a step specifies `theme`.
+
+### `SED.BattleIntegration`
+
+Internal module. Hooks `Scene_Battle` start/end to pause/resume SED scenes and enable battle-context scenes.
+
+### `SED.History`
+
+```js
+SED.History.push(entry)   // { sceneId, stepIndex, stateSnapshot }
+SED.History.getEntries()
+SED.History.clear()
+```
+
+Dialogue history with full state snapshots for rewind/debug.
+
+### `SED.AssetLoader`
+
+```js
+SED.AssetLoader.preloadImages(names)
+SED.AssetLoader.preloadAudio(files)
+SED.AssetLoader.isLoading()
+SED.AssetLoader.clear()
+```
+
+Used by the `preload` step type. `files` is an array of `{ name, folder }` objects.
+
+### `SED.Checkpoint`
+
+```js
+SED.Checkpoint.save(id, state)   // stores runner state snapshot
+SED.Checkpoint.load(id)          // => state | null
+SED.Checkpoint.clear(id)
+SED.Checkpoint.list()
+```
+
+---
+
+## Plugin Commands (v1.2 additions)
+
+```js
+PluginManager.callCommand("SmartEventDirectorMZ", "OpenAchievementViewer", {});
+PluginManager.callCommand("SmartEventDirectorMZ", "ChangeLocale", { locale: "en" });
+```

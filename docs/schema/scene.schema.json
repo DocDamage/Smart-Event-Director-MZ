@@ -23,6 +23,38 @@
       "type": "number",
       "minimum": 0
     },
+    "context": {
+      "type": "string",
+      "enum": ["map", "battle", "both"],
+      "description": "Where this scene may run. 'both' allows any context."
+    },
+    "layer": {
+      "type": "boolean",
+      "description": "If true, this scene is designed to run as a parallel layer."
+    },
+    "priority": {
+      "type": "number",
+      "description": "Layer priority when running as a parallel layer. Higher = later update."
+    },
+    "triggers": {
+      "type": "array",
+      "description": "Auto-start triggers for this scene.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string", "enum": ["mapEnter", "proximity", "switch", "variable"] },
+          "mapId": { "type": "number" },
+          "x": { "type": "number" },
+          "y": { "type": "number" },
+          "radius": { "type": "number" },
+          "switchId": { "type": "number" },
+          "switchValue": { "type": "boolean" },
+          "varId": { "type": "number" },
+          "varOp": { "type": "string", "enum": ["eq", "gt", "lt", "gte", "lte"] },
+          "varValue": { "type": "number" }
+        }
+      }
+    },
     "steps": {
       "type": "array",
       "items": {
@@ -136,6 +168,30 @@
         },
         {
           "$ref": "#/definitions/relationshipStep"
+        },
+        {
+          "$ref": "#/definitions/callSceneStep"
+        },
+        {
+          "$ref": "#/definitions/returnStep"
+        },
+        {
+          "$ref": "#/definitions/checkpointStep"
+        },
+        {
+          "$ref": "#/definitions/preloadStep"
+        },
+        {
+          "$ref": "#/definitions/bustStep"
+        },
+        {
+          "$ref": "#/definitions/qteStep"
+        },
+        {
+          "$ref": "#/definitions/timelineStep"
+        },
+        {
+          "$ref": "#/definitions/unlockAchievementStep"
         }
       ]
     },
@@ -164,6 +220,18 @@
         },
         "autoAdvance": {
           "type": "number"
+        },
+        "voice": {
+          "type": "string"
+        },
+        "bust": {
+          "type": "string"
+        },
+        "emotion": {
+          "type": "string"
+        },
+        "theme": {
+          "type": "string"
         }
       },
       "additionalProperties": false
@@ -212,9 +280,37 @@
               },
               "jump": {
                 "type": "string"
+              },
+              "condition": {
+                "type": "object",
+                "description": "Condition that must be true for this option to appear.",
+                "properties": {
+                  "switchId": { "type": "number" },
+                  "switchValue": { "type": "boolean" },
+                  "varId": { "type": "number" },
+                  "varOp": { "type": "string", "enum": ["eq", "gt", "lt", "gte", "lte"] },
+                  "varValue": { "type": "number" }
+                }
               }
             }
           }
+        },
+        "timeout": {
+          "type": "number",
+          "description": "Frames before auto-selecting default."
+        },
+        "timeoutBehavior": {
+          "type": "string",
+          "enum": ["selectDefault", "cancel", "jump"],
+          "description": "What happens when timeout expires."
+        },
+        "timeoutDefaultIndex": {
+          "type": "number",
+          "description": "Option index to auto-select on timeout."
+        },
+        "timeoutJump": {
+          "type": "string",
+          "description": "Label to jump to when timeoutBehavior is 'jump'."
         },
         "cancel": {
           "anyOf": [
@@ -863,6 +959,106 @@
         "value": {
           "type": "number"
         }
+      },
+      "additionalProperties": false
+    },
+    "callSceneStep": {
+      "type": "object",
+      "required": ["type", "sceneId"],
+      "properties": {
+        "type": { "type": "string", "enum": ["callScene"] },
+        "sceneId": { "type": "string" },
+        "returnLabel": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "returnStep": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "enum": ["return"] }
+      },
+      "additionalProperties": false
+    },
+    "checkpointStep": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "enum": ["checkpoint"] },
+        "id": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "preloadStep": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "enum": ["preload"] },
+        "images": { "type": "array", "items": { "type": "string" } },
+        "audio": { "type": "array", "items": { "type": "object" } }
+      },
+      "additionalProperties": false
+    },
+    "bustStep": {
+      "type": "object",
+      "required": ["type", "character"],
+      "properties": {
+        "type": { "type": "string", "enum": ["bust"] },
+        "character": { "type": "string" },
+        "emotion": { "type": "string" },
+        "position": { "type": "string" },
+        "action": { "type": "string", "enum": ["show", "hide", "move"] },
+        "enter": { "type": "string" },
+        "exit": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "qteStep": {
+      "type": "object",
+      "required": ["type", "variant"],
+      "properties": {
+        "type": { "type": "string", "enum": ["qte"] },
+        "variant": { "type": "string", "enum": ["press", "mash", "sequence"] },
+        "prompt": { "type": "string" },
+        "key": { "type": "string" },
+        "window": { "type": "number" },
+        "target": { "type": "number" },
+        "timeLimit": { "type": "number" },
+        "keys": { "type": "array", "items": { "type": "string" } },
+        "successJump": { "type": "string" },
+        "failJump": { "type": "string" },
+        "storeResult": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "timelineStep": {
+      "type": "object",
+      "required": ["type", "target", "keyframes"],
+      "properties": {
+        "type": { "type": "string", "enum": ["timeline"] },
+        "target": { "type": "string", "enum": ["camera"] },
+        "keyframes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "frame": { "type": "number" },
+              "x": { "type": "number" },
+              "y": { "type": "number" },
+              "zoom": { "type": "number" },
+              "easing": { "type": "string" }
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "unlockAchievementStep": {
+      "type": "object",
+      "required": ["type", "achievementId"],
+      "properties": {
+        "type": { "type": "string", "enum": ["unlockAchievement"] },
+        "achievementId": { "type": "string" }
       },
       "additionalProperties": false
     }

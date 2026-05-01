@@ -92,6 +92,7 @@ global.$gameParty = {
 // $gameScreen
 global.$gameScreen = {
   startShake() {},
+  startFadeIn() {},
   _zoomScale: 1
 };
 
@@ -235,7 +236,9 @@ global.ColorManager = ColorManager;
 
 // DataManager
 global.DataManager = {
-  loadGame() { return true; }
+  loadGame() { return true; },
+  makeSaveContents() { return {}; },
+  extractSaveContents(contents) {}
 };
 
 // Scene classes

@@ -187,7 +187,7 @@ That is what keeps the project modular, testable, and easy for an LLM to code wi
 - [ ] Failsafe test — missing event, timeout, bad JSON all recover gracefully
 
 **Graphics**
-- [ ] Chromatic aberration shader — PIXI custom filter (stubbed in `SED_ScreenEffects.js`)
+- [x] Chromatic aberration shader — `ChromaticAberrationFilter` in `SED_ScreenEffects.js`
 
 **Polish**
 - [ ] Memory leak check — verify no leaked references after dozens of plays
@@ -197,11 +197,10 @@ That is what keeps the project modular, testable, and easy for an LLM to code wi
 
 | Category | Items | Priority |
 |---|---|---|
-| Already Implemented | ~55 | ✅ Done |
+| Already Implemented | ~56 | ✅ Done |
 | Testing (manual) | 4 | 🟡 High |
-| Graphics | 1 | 🟢 Medium |
 | Polish | 2 | 🟢 Medium |
-| **Total Remaining** | **7** | |
+| **Total Remaining** | **6** | |
 
 ---
 

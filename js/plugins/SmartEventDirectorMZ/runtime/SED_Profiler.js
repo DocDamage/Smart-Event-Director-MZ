@@ -55,6 +55,44 @@
     return lastSceneStats ? SED.Util.cloneJson(lastSceneStats) : { sceneId: null, duration: 0, stepsRun: 0 };
   }
 
+  // Memory tracking
+  function getMemoryInfo() {
+    const info = { usedJSHeapSize: 0, totalJSHeapSize: 0, jsHeapSizeLimit: 0 };
+    if (typeof performance !== "undefined" && performance.memory) {
+      info.usedJSHeapSize = performance.memory.usedJSHeapSize;
+      info.totalJSHeapSize = performance.memory.totalJSHeapSize;
+      info.jsHeapSizeLimit = performance.memory.jsHeapSizeLimit;
+    }
+    return info;
+  }
+
+  function formatBytes(bytes) {
+    if (bytes === 0) return "0 B";
+    const k = 1024;
+    const sizes = ["B", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  }
+
+  let _memoryBaseline = 0;
+  function recordMemoryBaseline() {
+    const mem = getMemoryInfo();
+    _memoryBaseline = mem.usedJSHeapSize;
+  }
+
+  function checkMemoryGrowth() {
+    const mem = getMemoryInfo();
+    if (mem.usedJSHeapSize === 0) return null;
+    const growth = mem.usedJSHeapSize - _memoryBaseline;
+    return {
+      baseline: _memoryBaseline,
+      current: mem.usedJSHeapSize,
+      growth: growth,
+      growthFormatted: formatBytes(growth),
+      currentFormatted: formatBytes(mem.usedJSHeapSize)
+    };
+  }
+
   function reset() {
     for (let i = 0; i < FRAME_HISTORY; i++) frameTimes[i] = 0;
     frameIndex = 0; frameCount = 0;
@@ -174,7 +212,11 @@
     recordStep: recordStep,
     recordScene: recordScene,
     buildOverlayLines: buildOverlayLines,
-    drawProfiler: drawProfiler
+    drawProfiler: drawProfiler,
+    getMemoryInfo: getMemoryInfo,
+    formatBytes: formatBytes,
+    recordMemoryBaseline: recordMemoryBaseline,
+    checkMemoryGrowth: checkMemoryGrowth
   };
 
   // Subscribe to EventBus lifecycle events

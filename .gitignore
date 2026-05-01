@@ -11,6 +11,9 @@ tools/__pycache__/
 # Build outputs
 editor/build/
 
+# Stress test artifacts
+data/SmartEventDirector/scenes/stress/
+
 # OS files
 .DS_Store
 Thumbs.db

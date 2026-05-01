@@ -59,6 +59,7 @@
       frame: Graphics.frameCount,
       sceneId: state.sceneId,
       queueIndex: state.queueIndex,
+      nodeId: state.nodeId || null,
       contextLocals: state.contextLocals,
       switches: snapshotSwitches(cpIds),
       variables: snapshotVariables(cpVarIds),
@@ -105,7 +106,7 @@
       SED.Save.fromJSON({ choices: entry.choices, flags: entry.flags });
     }
 
-    const success = SED.Runner.resume(entry.sceneId, entry.queueIndex);
+    const success = SED.Runner.resume(entry.sceneId, entry.queueIndex, entry.nodeId || null);
     if (success && SED.Runner._context && entry.contextLocals) {
       for (const key in entry.contextLocals) {
         SED.Runner._context.setLocal(key, entry.contextLocals[key]);

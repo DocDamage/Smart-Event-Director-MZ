@@ -16,6 +16,11 @@
       throw new Error("Duplicate sceneId: " + id);
     }
 
+    // v2.0: auto-convert linear scenes to graph format
+    if (SED.GraphConverter && SED.GraphConverter.normalizeScene) {
+      scene = SED.GraphConverter.normalizeScene(scene);
+    }
+
     scenes[id] = scene;
   }
 

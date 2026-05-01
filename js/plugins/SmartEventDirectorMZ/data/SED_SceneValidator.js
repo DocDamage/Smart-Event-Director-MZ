@@ -17,25 +17,96 @@
     }
   }
 
-  function validateScene(scene) {
-    const errors = [];
+  function validateGraph(scene, errors) {
+    const nodes = scene.nodes || [];
+    const edges = scene.edges || [];
+    const nodeIds = new Set();
+    const nodeMap = Object.create(null);
 
-    if (!scene || typeof scene !== "object") {
-      return ["Scene must be an object."];
+    nodes.forEach((node, idx) => {
+      if (!node.id || typeof node.id !== "string") {
+        errors.push("nodes[" + idx + "] missing id.");
+      } else if (nodeIds.has(node.id)) {
+        errors.push("Duplicate node id: " + node.id);
+      } else {
+        nodeIds.add(node.id);
+        nodeMap[node.id] = node;
+      }
+      if (!node.type || typeof node.type !== "string") {
+        errors.push("nodes[" + idx + "] missing type.");
+      }
+    });
+
+    const inDegree = Object.create(null);
+    nodeIds.forEach(id => { inDegree[id] = 0; });
+
+    edges.forEach((edge, idx) => {
+      if (!edge.source || !nodeIds.has(edge.source)) {
+        errors.push("edges[" + idx + "] source missing or invalid: " + edge.source);
+      }
+      if (!edge.target || !nodeIds.has(edge.target)) {
+        errors.push("edges[" + idx + "] target missing or invalid: " + edge.target);
+      }
+      if (edge.source === edge.target) {
+        errors.push("edges[" + idx + "] self-loop detected: " + edge.id);
+      }
+      if (edge.condition) {
+        validateCondition(edge.condition, "edges[" + idx + "]", errors);
+      }
+      if (edge.target) inDegree[edge.target]++;
+    });
+
+    // Check for orphan nodes (no incoming, not start)
+    const startNodes = [];
+    nodeIds.forEach(id => {
+      if (inDegree[id] === 0) startNodes.push(id);
+    });
+    if (startNodes.length === 0 && nodes.length > 0) {
+      errors.push("Graph has no start node (all nodes have incoming edges).");
+    }
+    if (startNodes.length > 1) {
+      errors.push("Graph has multiple start nodes: " + startNodes.join(", "));
     }
 
-    if (scene.schema !== "SED_SCENE_1") {
-      errors.push("Scene schema must be SED_SCENE_1.");
+    // Check for unreachable nodes
+    const visited = new Set();
+    const queue = startNodes.slice();
+    while (queue.length > 0) {
+      const id = queue.shift();
+      if (visited.has(id)) continue;
+      visited.add(id);
+      edges.filter(e => e.source === id).forEach(e => queue.push(e.target));
     }
+    nodeIds.forEach(id => {
+      if (!visited.has(id)) {
+        errors.push("Unreachable node: " + id + " (" + (nodeMap[id].type || "unknown") + ")");
+      }
+    });
 
-    if (!scene.sceneId || typeof scene.sceneId !== "string") {
-      errors.push("Scene missing string sceneId.");
-    }
+    // Check for cycles (simple DFS)
+    const WHITE = 0, GRAY = 1, BLACK = 2;
+    const color = Object.create(null);
+    nodeIds.forEach(id => { color[id] = WHITE; });
+    const adj = Object.create(null);
+    nodeIds.forEach(id => { adj[id] = []; });
+    edges.forEach(e => { if (adj[e.source]) adj[e.source].push(e.target); });
 
-    if (!Array.isArray(scene.steps)) {
-      errors.push("Scene steps must be an array.");
-      return errors;
+    function dfs(id) {
+      color[id] = GRAY;
+      for (const target of adj[id]) {
+        if (color[target] === GRAY) {
+          errors.push("Graph contains a cycle involving node: " + target);
+          return;
+        }
+        if (color[target] === WHITE) dfs(target);
+      }
+      color[id] = BLACK;
     }
+    nodeIds.forEach(id => { if (color[id] === WHITE) dfs(id); });
+  }
+
+  function validateSteps(scene, errors) {
+    const steps = scene.steps || [];
 
     const labels = Object.create(null);
     const labelIndexes = Object.create(null);
@@ -147,7 +218,9 @@
   }
 
   SED.SceneValidator = {
-    validateScene
+    validateScene,
+    validateGraph,
+    VALID_OPERATORS
   };
 
   SED.registerModule("SceneValidator", "1.1.0");

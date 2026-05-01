@@ -1,6 +1,6 @@
 /*:
  * @target MZ
- * @plugindesc v1.2 Smart Event Director MZ - modular cutscene/story runner.
+ * @plugindesc v2.0 Smart Event Director MZ - modular cutscene/story runner.
  * @author Smart Event Director MZ
  *
  * @param Debug Mode
@@ -247,7 +247,9 @@
     "data/SED_SceneValidator.js",
     "data/SED_DataLoader.js",
 
+    "runtime/SED_GraphConverter.js",
     "runtime/SED_StepQueue.js",
+    "runtime/SED_GraphQueue.js",
     "runtime/SED_StepContext.js",
     "runtime/SED_Locks.js",
     "runtime/SED_Save.js",

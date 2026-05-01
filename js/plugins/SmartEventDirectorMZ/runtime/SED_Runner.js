@@ -30,7 +30,7 @@
 
     getState() {
       if (!this.isBusy()) return null;
-      return {
+      const state = {
         sceneId: this._scene.sceneId,
         queueIndex: this._queue.currentIndex(),
         contextLocals: SED.Util.cloneJson(this._context.local || {}),
@@ -44,6 +44,10 @@
           returnLabel: entry.returnLabel
         }))
       };
+      if (this._queue instanceof SED.GraphQueue) {
+        state.nodeId = this._queue.currentNodeId();
+      }
+      return state;
     },
 
     getSceneStats() {
@@ -102,7 +106,14 @@
 
       this._state = "running";
       this._scene = SED.Util.cloneJson(scene);
-      this._queue = new SED.StepQueue(this._scene.steps);
+
+      // v2.0: use GraphQueue for graph scenes, StepQueue for legacy linear scenes
+      if (Array.isArray(this._scene.nodes) && Array.isArray(this._scene.edges)) {
+        this._queue = new SED.GraphQueue(this._scene.nodes, this._scene.edges, this._scene._labels);
+      } else {
+        this._queue = new SED.StepQueue(this._scene.steps);
+      }
+
       this._context = new SED.StepContext(this._scene, options);
       this._activeStep = null;
       this._activeHandler = null;
@@ -122,22 +133,28 @@
       return this.play(sceneId, {});
     },
 
-    resume(sceneId, queueIndex) {
+    resume(sceneId, queueIndex, nodeId) {
       if (this.isBusy()) {
         SED.Logger.warn("Cannot resume: runner is busy.");
         return false;
       }
       const success = this.play(sceneId, {});
       if (!success) return false;
-      this._queue._index = Math.max(0, Math.min(queueIndex, this._scene.steps.length));
-      SED.Logger.info("Resumed scene at step:", this._queue._index);
+
+      if (this._queue instanceof SED.GraphQueue && nodeId) {
+        this._queue.jumpTo(nodeId);
+        SED.Logger.info("Resumed graph scene at node:", nodeId);
+      } else {
+        this._queue._index = Math.max(0, Math.min(queueIndex, this._scene.steps ? this._scene.steps.length : 0));
+        SED.Logger.info("Resumed scene at step:", this._queue._index);
+      }
       return true;
     },
 
     resumeFromSave() {
       const data = SED.Save && SED.Save.getResumeData ? SED.Save.getResumeData() : null;
       if (!data) return false;
-      const result = this.resume(data.sceneId, data.queueIndex || 0);
+      const result = this.resume(data.sceneId, data.queueIndex || 0, data.nodeId || null);
       if (result && data.callStack && data.callStack.length > 0) {
         // v1.1: restore call stack is handled by caller reconstructing state
         SED.Logger.info("Resumed scene with call stack depth:", data.callStack.length);
@@ -331,6 +348,9 @@
         queueIndex: this._queue.currentIndex(),
         contextLocals: SED.Util.cloneJson(this._context.local || {})
       };
+      if (this._queue instanceof SED.GraphQueue) {
+        this._transferResumeData.nodeId = this._queue.currentNodeId();
+      }
     },
 
     // v1.1: push current scene onto call stack and start sub-scene
@@ -375,7 +395,7 @@
     if (SED.Runner && SED.Runner._transferResumeData) {
       const data = SED.Runner._transferResumeData;
       SED.Runner._transferResumeData = null;
-      SED.Runner.resume(data.sceneId, data.queueIndex);
+      SED.Runner.resume(data.sceneId, data.queueIndex, data.nodeId || null);
       if (SED.Runner._context && data.contextLocals) {
         for (const key in data.contextLocals) {
           SED.Runner._context.setLocal(key, data.contextLocals[key]);

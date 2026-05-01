@@ -191,7 +191,7 @@ That is what keeps the project modular, testable, and easy for an LLM to code wi
 
 **Polish**
 - [ ] Memory leak check — verify no leaked references after dozens of plays
-- [ ] Example project — small RPG Maker MZ project with maps, events, and demo scenes
+- [x] Example project — `Documents/RPGMakerMZ/SED_Example` with 15 demo events
 
 ### Summary: v2.0 Target
 

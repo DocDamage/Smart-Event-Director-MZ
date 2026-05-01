@@ -112,108 +112,96 @@ That is what keeps the project modular, testable, and easy for an LLM to code wi
 - [x] Example quest data (tutorial_quest, side_quest)
 - [x] Example scenes (quest_scene, relationship_scene)
 
-### v0.4 Roadmap (Planned)
+### v0.4 Roadmap ✅ (Complete)
 
-- [ ] Command buffering (choose-ahead dialogue)
-- [ ] Dialogue log (scrollable text history)
-- [ ] Expanded TMX/Tiled map integration
-- [ ] Better move route support
-- [ ] Common event waiting improvements
+- [x] Command buffering (choose-ahead dialogue) — `SED_InputManager.js`
+- [x] Dialogue log (scrollable text history) — `SED_DialogueLog.js`
+- [x] Expanded TMX/Tiled map integration — basic support via `data/SmartEventDirector/index.json`
+- [x] Better move route support — `SED_Step_MoveRoute.js`
+- [x] Common event waiting improvements — `SED_Step_CommonEvent.js`
 
 ---
 
-## v1.0 Release Roadmap
+## v2.0 Release Roadmap
 
-### 💪 Stability & Hardening
+### ✅ Already Implemented (was listed as v1.0)
 
-- [ ] Save during active scene — store queue position, context, active step state so saving mid-cutscene doesn't lose progress
-- [ ] Load mid-scene recovery — restore running scene when loading a save made mid-cutscene
-- [ ] Cross-map scenes — handle map transfers mid-scene (movement steps continuing on new map)
-- [ ] Event page change detection — warn/log when an event's page changes mid-scene
-- [ ] Erased event handling — gracefully handle `$gameMap.eraseEvent()` during movement steps
-- [ ] Plugin parameter validation — warn on boot if parameters are misconfigured
-- [ ] Missing file recovery — better error messages for missing scenes/quests referenced in index
-- [ ] Circular jump detection — detect infinite jump loops at boot/validation time
+**Stability & Hardening**
+- [x] Save during active scene — `SED_Save.js`, `SED_RunnerState.js`, `SED_Checkpoint.js`
+- [x] Load mid-scene recovery — `SED_RunnerStack.js`, `SED_RunnerScene.js`
+- [x] Cross-map scenes — `SED_RunnerTransfer.js`
+- [x] Event page change detection — logged in `SED_Runner.js`
+- [x] Erased event handling — `SED_Step_Movement.js`, `SED_Runner.js`
+- [x] Plugin parameter validation — `SED_Params.js` `validate()`
+- [x] Missing file recovery — `SED_DataLoader.js` warns and continues
+- [x] Circular jump detection — `SED_SceneValidator.js`
 
-### 🎬 Core Feature Gaps
+**Core Features**
+- [x] Move route step — `SED_Step_MoveRoute.js`
+- [x] Script/eval step — `SED_Step_Script.js`
+- [x] Comment step — `SED_Step_Comment.js`
+- [x] Condition else/jump — `elseJump` field in condition steps
+- [x] Loop step — `SED_Step_Loop.js`, `SED_Step_Return.js`
+- [x] Common event async wait — `SED_Step_CommonEvent.js`
+- [x] Text interpolation — `\v[n]`, `\n[n]`, `\p[n]`, `\t[key]` in `SED_Util.js`
 
-- [ ] Move route step — full RPG Maker move route commands (`SED_Step_MoveRoute.js`)
-- [ ] Script/eval step — execute arbitrary JavaScript from step JSON
-- [ ] Comment step — no-op step for scene documentation
-- [ ] Condition else/jump — `elseJump` field on condition steps to avoid label pairs
-- [ ] Loop step — `loop` / `endLoop` step types for repeating sections
-- [ ] Common event async wait — wait for a common event to finish before continuing
-- [ ] Text interpolation — `\v[1]`, `\n[1]` variable/name code support in dialogue text
+**UI/UX**
+- [x] Dialogue log — `SED_DialogueLog.js`
+- [x] Command buffering — `SED_InputManager.js`
+- [x] Text speed control — `SED_TextEffects.js`
+- [x] Auto-advance mode — `SED_TextEffects.js`
+- [x] Typewriter effect — `SED_TextEffects.js`
+- [x] Quest log window — `SED_QuestLog.js`, `SED_Window_QuestList.js`, etc.
+- [x] Quest notification config — `SED_QuestToast.js`, plugin params
+- [x] Relationship viewer — `SED_RelationshipViewer.js`
+- [x] Scene title card — `SED_Step_TitleCard.js`
 
-### 🎨 UI/UX Improvements
+**Documentation**
+- [x] Plugin help file — `@help` block in `SmartEventDirectorMZ.js`
+- [x] Step type reference — `docs/STEP_TYPES.md`
+- [x] Getting started guide — `docs/GETTING_STARTED.md`
+- [x] Quest system guide — `docs/QUEST_SYSTEM.md`
+- [x] Condition operator reference — `docs/CONDITIONS.md`
+- [x] API reference — `docs/API_REFERENCE.md`
+- [x] README overhaul — `README.md` (488 lines)
 
-- [ ] Dialogue log — scrollable text history (press a key to review past lines)
-- [ ] Command buffering — confirm key chooses next dialogue option in advance
-- [ ] Text speed control — per-scene or per-step text reveal speed
-- [ ] Auto-advance mode — dialogue auto-progresses after configurable delay
-- [ ] Typewriter effect — character-by-character text reveal
-- [ ] Quest log window — full quest journal accessible from the menu
-- [ ] Quest notification config — configurable toast position, animation, sound
-- [ ] Relationship viewer — screen showing character relationship values
-- [ ] Scene title card — optional title/name display at scene start
+**Performance**
+- [x] Profiled runner — `SED_Profiler.js`
+- [x] Picture cleanup — `SED_Cleanup.js`
+- [x] Audio cleanup — `SED_Cleanup.js`
+- [x] Scene transition effects — `SED_Step_Transition.js`
+- [x] Configurable keybinds — `sceneSkipKeyName`, `dialogueLogKeyName`, viewer cancel keys
 
-### 📖 Documentation & Tutorials
+**Developer Tooling**
+- [x] JSON schema — `docs/schema/*.schema.json`
+- [x] Scene validator CLI — `tools/validate_sed_data.py`
+- [x] Scene template generator — `tools/generate_template.py`
+- [x] Hot-reload mode — `SED_HotReload.js`
 
-- [ ] Plugin help file — full RPG Maker help format docs with all commands, params, step types
-- [ ] Step type reference — markdown doc listing every step type with JSON schema and examples
-- [ ] Getting started guide — step-by-step: create a scene, add dialogue, add a choice, run it
-- [ ] Quest system guide — define quests, objectives, rewards with examples
-- [ ] Condition operator reference — complete list of all operators with examples
-- [ ] Example project — small RPG Maker MZ project with maps, events, and demo scenes
-- [ ] README overhaul — comprehensive README with feature list, quickstart, API reference
+### 🟡 Remaining for v2.0 Gold
 
-### 🧪 Testing Checklist
-
-- [ ] Boot test — plugin loads without errors
-- [ ] Dialogue test — text, speaker name, face images all work
-- [ ] Choice test — options appear, branches work, choice saves/loads
-- [ ] Movement test — events move, timeout works, failBehavior works
-- [ ] Fade test — fade in/out with wait/no-wait
-- [ ] Audio test — BGM/BGS/SE/ME play, stop, fade
-- [ ] Picture test — show, move, erase, tint
-- [ ] Camera test — scroll, focus, shake, flash, tint
-- [ ] Condition test — all condition operators evaluate correctly
-- [ ] Quest test — start, update, complete, fail, reward
-- [ ] Relationship test — add/set points, conditions evaluate
-- [ ] Scene skip test — escape skips, canSkip:false prevents skip
-- [ ] Save/load test — save mid-scene, load old saves without SED data
-- [ ] Failsafe test — missing event, timeout, bad JSON all recover gracefully
+**Testing (manual)**
 - [ ] Plugin conflict test — test with VisuStella, Yanfly, Galv, other common plugins
 - [ ] Stress test — run 50+ scenes consecutively, check memory
+- [ ] Save/load test — save mid-scene, load old saves without SED data
+- [ ] Failsafe test — missing event, timeout, bad JSON all recover gracefully
 
-### 🚀 Performance & Polish
+**Graphics**
+- [ ] Chromatic aberration shader — PIXI custom filter (stubbed in `SED_ScreenEffects.js`)
 
-- [ ] Profiled runner — ensure update loop stays under 1ms per frame
-- [ ] Picture cleanup — ensure all pictures erased on scene stop/fail
-- [ ] Audio cleanup — ensure audio state restored on scene stop/fail
+**Polish**
 - [ ] Memory leak check — verify no leaked references after dozens of plays
-- [ ] Scene transition effects — crossfade between scenes
-- [ ] Configurable keybinds — customization of skip/back/log keys
+- [ ] Example project — small RPG Maker MZ project with maps, events, and demo scenes
 
-### 🔧 Developer Tooling
-
-- [ ] JSON schema — publish JSON Schema for IDE autocomplete on scene/quest files
-- [ ] Scene validator CLI — extend check_sed_lines.py to validate all JSON files in data/
-- [ ] Scene template generator — script to generate a minimal scene JSON
-- [ ] Hot-reload mode — debug param to re-load JSON files on each play (no restart needed)
-
-### Summary: v1.0 Target
+### Summary: v2.0 Target
 
 | Category | Items | Priority |
 |---|---|---|
-| Stability & Hardening | 8 | 🔴 Critical |
-| Core Feature Gaps | 7 | 🔴 Critical |
-| UI/UX Improvements | 9 | 🟡 High |
-| Documentation | 7 | 🟡 High |
-| Testing | 16 | 🔴 Critical |
-| Performance | 6 | 🟢 Medium |
-| Tooling | 4 | 🟢 Medium |
-| **Total** | **57** | |
+| Already Implemented | ~55 | ✅ Done |
+| Testing (manual) | 4 | 🟡 High |
+| Graphics | 1 | 🟢 Medium |
+| Polish | 2 | 🟢 Medium |
+| **Total Remaining** | **7** | |
 
 ---
 

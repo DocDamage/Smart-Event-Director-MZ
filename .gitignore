@@ -11,6 +11,11 @@ tools/__pycache__/
 # Build outputs
 editor/build/
 
+# Local publishing tools
+butler.exe
+7z.dll
+c7zip.dll
+
 # Stress test artifacts
 data/SmartEventDirector/scenes/stress/
 

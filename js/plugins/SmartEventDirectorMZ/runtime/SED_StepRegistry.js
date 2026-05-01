@@ -4,7 +4,7 @@
   const SED = window.SED;
   const handlers = Object.create(null);
 
-  function register(handler) {
+  function register(handler, allowOverride) {
     if (!handler || !Array.isArray(handler.types)) {
       throw new Error("SED step handler must have types array.");
     }
@@ -18,7 +18,7 @@
     }
 
     for (const type of handler.types) {
-      if (handlers[type]) {
+      if (handlers[type] && !allowOverride) {
         throw new Error("Duplicate SED step handler type: " + type);
       }
 
@@ -38,8 +38,13 @@
     return Object.keys(handlers);
   }
 
+  function unregister(type) {
+    delete handlers[type];
+  }
+
   SED.StepRegistry = {
     register,
+    unregister,
     get,
     has,
     listTypes

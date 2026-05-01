@@ -91,6 +91,11 @@
  * @default en
  * @desc Active locale for string tables (e.g., en, es, jp). Requires localeFiles in index.json.
  *
+ * @param Custom Step Path
+ * @type string
+ * @default
+ * @desc Path to custom step handler index JSON (e.g., data/SmartEventDirector/custom_steps/index.json). Leave empty to disable.
+ *
  * @command PlayScene
  * @text Play Scene
  * @arg sceneId
@@ -250,6 +255,9 @@
     "runtime/SED_GraphConverter.js",
     "runtime/SED_StepQueue.js",
     "runtime/SED_GraphQueue.js",
+    "runtime/SED_EventBus.js",
+    "runtime/SED_PluginAPI.js",
+    "runtime/SED_CustomStepLoader.js",
     "runtime/SED_StepContext.js",
     "runtime/SED_Locks.js",
     "runtime/SED_Save.js",
@@ -343,6 +351,10 @@
 
       if (SED.DataLoader && SED.DataLoader.loadAll) {
         await SED.DataLoader.loadAll();
+      }
+
+      if (SED.CustomStepLoader && SED.CustomStepLoader.load) {
+        await SED.CustomStepLoader.load();
       }
 
       if (SED.SceneRegistry && SED.Triggers) {

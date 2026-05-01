@@ -28,7 +28,6 @@
 
     // v0.2 params
     enableSceneSkip: bool("Enable Scene Skip", true),
-    sceneSkipKey: number("Scene Skip Key", 27),
     enableDebugOverlay: bool("Enable Debug Overlay", false),
     allowSceneQueue: bool("Allow Scene Queue", false),
     defaultSkipPrevention: bool("Default Can Skip", true),
@@ -87,10 +86,6 @@
     const validToastAnimations = ["slide", "fade", "none"];
     if (!validToastAnimations.includes(p.questToastAnimation)) {
       warnings.push("Quest Toast Animation must be one of: " + validToastAnimations.join(", ") + ".");
-    }
-
-    if (!Number.isFinite(p.sceneSkipKey)) {
-      warnings.push("Scene Skip Key must be a valid number.");
     }
 
     if (!p.locale || typeof p.locale !== "string" || p.locale.trim() === "") {

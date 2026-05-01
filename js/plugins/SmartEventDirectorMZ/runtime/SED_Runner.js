@@ -21,6 +21,14 @@
         SED.EventBus.emit(SED.EventBus.Events.RUNNER_UPDATE_START, { sceneId: this._scene ? this._scene.sceneId : null, state: this._state });
       }
 
+      if (this._state === "running" && SED.Params && SED.Params.enableSceneSkip !== false) {
+        const skipKey = (SED.Params && SED.Params.sceneSkipKeyName) || "cancel";
+        if (Input.isTriggered(skipKey)) {
+          this.skip();
+          return;
+        }
+      }
+
       if (this._state !== "running") {
         if (this._pendingQueue.length > 0) {
           const next = this._pendingQueue.shift();

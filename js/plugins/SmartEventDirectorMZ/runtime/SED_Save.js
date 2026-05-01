@@ -83,6 +83,14 @@
     // v0.4: Restore active scene resume data
     resumeData = data.activeScene || null;
 
+    // Clear existing runtime state before restoring to prevent session leakage
+    if (SED.QuestState && SED.QuestState.clear) {
+      SED.QuestState.clear();
+    }
+    if (SED.RelationshipState && SED.RelationshipState.clear) {
+      SED.RelationshipState.clear();
+    }
+
     // v0.3: Restore quest state from save data
     if (data.quests && SED.QuestState && SED.QuestState._getRawState) {
       const questStates = data.quests;

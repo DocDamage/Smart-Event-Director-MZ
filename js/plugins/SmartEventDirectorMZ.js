@@ -286,6 +286,8 @@
     "runtime/SED_Recorder.js",
     "runtime/SED_ThemeManager.js",
     "runtime/SED_ScreenEffects.js",
+    "runtime/SED_BustManager.js",
+    "runtime/SED_VoiceManager.js",
     "runtime/SED_InputManager.js",
     "runtime/SED_Runner.js",
     "runtime/SED_RunnerState.js",
@@ -312,6 +314,8 @@
     "steps/SED_Step_Camera.js",
     "steps/SED_Step_Timeline.js",
     "steps/SED_Step_Weather.js",
+    "steps/SED_Step_Bust.js",
+    "steps/SED_Step_QTE.js",
 
     "data/SED_QuestRegistry.js",
     "runtime/SED_QuestState.js",

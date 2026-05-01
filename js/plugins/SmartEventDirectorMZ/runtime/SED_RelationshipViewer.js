@@ -114,7 +114,8 @@
   };
 
   Scene_SED_RelationshipViewer.prototype.isCancelTriggered = function() {
-    return Input.isTriggered("cancel") || TouchInput.isCancelled();
+    const cancelKey = SED.Params && SED.Params.relationshipViewerCancelKey ? SED.Params.relationshipViewerCancelKey : "cancel";
+    return Input.isTriggered(cancelKey) || TouchInput.isCancelled();
   };
 
   // ---------------------------------------------------------------------------

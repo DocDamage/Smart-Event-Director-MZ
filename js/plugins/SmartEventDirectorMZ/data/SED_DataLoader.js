@@ -188,8 +188,13 @@
     );
 
     if (errors.length > 0) {
-      throw new Error(errors.join("\n"));
+      SED.Logger.warn("SED load warnings:\n" + errors.join("\n"));
     }
+
+    const loadedScenes = Array.isArray(index.scenes) ? index.scenes.length : 0;
+    const loadedQuests = Array.isArray(index.quests) ? index.quests.length : 0;
+    const loadedAchievements = Array.isArray(index.achievements) ? index.achievements.length : 0;
+    SED.Logger.info("SED loaded:", loadedScenes, "scenes,", loadedQuests, "quests,", loadedAchievements, "achievements.");
   }
 
   async function loadAll() {

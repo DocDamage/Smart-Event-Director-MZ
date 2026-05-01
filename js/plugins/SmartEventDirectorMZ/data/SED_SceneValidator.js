@@ -214,6 +214,49 @@
       }
     });
 
+    // Detect circular jumps
+    const jumpGraph = Object.create(null);
+    steps.forEach((step, index) => {
+      if (step.type === "jump" && step.label && labelIndexes[step.label] !== undefined) {
+        const targetIndex = labelIndexes[step.label];
+        const targetStep = steps[targetIndex];
+        if (targetStep && targetStep.type === "label") {
+          jumpGraph[index] = targetIndex;
+        }
+      }
+    });
+
+    const visited = Object.create(null);
+    const stack = [];
+    function detectCycle(index) {
+      if (visited[index] === "visiting") {
+        const cycleStart = stack.indexOf(index);
+        const cycleNodes = stack.slice(cycleStart).concat(index);
+        const cycleLabels = cycleNodes.map(i => {
+          const s = steps[i];
+          if (s.type === "jump") return "jump '" + s.label + "'";
+          if (s.type === "label") return "label '" + s.name + "'";
+          return "step " + i;
+        });
+        errors.push("Circular jump detected: " + cycleLabels.join(" → "));
+        return;
+      }
+      if (visited[index] === "done") return;
+      visited[index] = "visiting";
+      stack.push(index);
+      if (jumpGraph[index] !== undefined) {
+        detectCycle(jumpGraph[index]);
+      }
+      stack.pop();
+      visited[index] = "done";
+    }
+
+    for (let i = 0; i < steps.length; i++) {
+      if (steps[i] && steps[i].type === "jump" && visited[i] === undefined) {
+        detectCycle(i);
+      }
+    }
+
     return errors;
   }
 

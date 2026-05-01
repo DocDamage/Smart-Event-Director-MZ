@@ -47,6 +47,8 @@
     // v0.4: Keybinds
     sceneSkipKeyName: text("Scene Skip Key Name", "cancel"),
     dialogueLogKeyName: text("Dialogue Log Key Name", "pageup"),
+    achievementViewerCancelKey: text("Achievement Viewer Cancel Key", "cancel"),
+    relationshipViewerCancelKey: text("Relationship Viewer Cancel Key", "cancel"),
 
     // v0.4: Developer tooling
     hotReload: bool("Enable Hot Reload", false),
@@ -62,21 +64,44 @@
   };
 
   function validate() {
-    const errors = [];
+    const warnings = [];
+    const p = SED.Params;
 
-    if (!SED.Params.dataIndexPath || typeof SED.Params.dataIndexPath !== "string") {
-      errors.push("Data Index Path must be a non-empty string.");
+    if (!p.dataIndexPath || typeof p.dataIndexPath !== "string") {
+      warnings.push("Data Index Path must be a non-empty string.");
     }
 
-    if (!Number.isFinite(SED.Params.defaultSceneTimeout) || SED.Params.defaultSceneTimeout < 0) {
-      errors.push("Default Scene Timeout must be a non-negative number.");
+    if (!Number.isFinite(p.defaultSceneTimeout) || p.defaultSceneTimeout <= 0) {
+      warnings.push("Default Scene Timeout must be greater than 0.");
     }
 
-    if (errors.length > 0 && SED.Logger) {
-      SED.Logger.error("Plugin parameter validation failed:", errors.join("; "));
+    const validToastPositions = ["topLeft", "topRight", "bottomLeft", "bottomRight", "center"];
+    if (!validToastPositions.includes(p.questToastPosition)) {
+      warnings.push("Quest Toast Position must be one of: " + validToastPositions.join(", ") + ".");
     }
 
-    return errors.length === 0;
+    if (!Number.isFinite(p.questToastDuration) || p.questToastDuration < 0) {
+      warnings.push("Quest Toast Duration must be a non-negative number.");
+    }
+
+    const validToastAnimations = ["slide", "fade", "none"];
+    if (!validToastAnimations.includes(p.questToastAnimation)) {
+      warnings.push("Quest Toast Animation must be one of: " + validToastAnimations.join(", ") + ".");
+    }
+
+    if (!Number.isFinite(p.sceneSkipKey)) {
+      warnings.push("Scene Skip Key must be a valid number.");
+    }
+
+    if (!p.locale || typeof p.locale !== "string" || p.locale.trim() === "") {
+      warnings.push("Locale must be a non-empty string.");
+    }
+
+    if (warnings.length > 0 && SED.Logger) {
+      SED.Logger.warn("Plugin parameter validation warnings:", warnings.join("; "));
+    }
+
+    return warnings.length === 0;
   }
 
   SED.Params.validate = validate;

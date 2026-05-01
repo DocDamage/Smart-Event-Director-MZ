@@ -141,7 +141,8 @@
   };
 
   Scene_SED_AchievementViewer.prototype.isCancelTriggered = function() {
-    return Input.isTriggered("cancel") || TouchInput.isCancelled();
+    const cancelKey = SED.Params && SED.Params.achievementViewerCancelKey ? SED.Params.achievementViewerCancelKey : "cancel";
+    return Input.isTriggered(cancelKey) || TouchInput.isCancelled();
   };
 
   // ---------------------------------------------------------------------------

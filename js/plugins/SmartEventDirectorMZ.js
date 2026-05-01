@@ -71,6 +71,16 @@
  * @default
  * @desc SE filename to play on toast (leave empty for none)
  *
+ * @param Achievement Viewer Cancel Key
+ * @type string
+ * @default cancel
+ * @desc RPG Maker key name for closing the achievement viewer (cancel, escape, shift, control)
+ *
+ * @param Relationship Viewer Cancel Key
+ * @type string
+ * @default cancel
+ * @desc RPG Maker key name for closing the relationship viewer (cancel, escape, shift, control)
+ *
  * @param Scene Skip Key Name
  * @type string
  * @default cancel

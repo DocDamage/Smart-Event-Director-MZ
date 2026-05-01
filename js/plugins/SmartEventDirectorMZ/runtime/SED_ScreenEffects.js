@@ -13,6 +13,7 @@
   let _vignetteSprite = null;
   let _grainSprite = null;
   let _colorMatrixFilter = null;
+  let _chromaticFilter = null;
 
   function ensureOverlayContainer() {
     const scene = SceneManager._scene;
@@ -76,6 +77,57 @@
     const scene = SceneManager._scene;
     if (!scene || !_colorMatrixFilter) return;
     const filters = (scene.filters || []).filter(f => f !== _colorMatrixFilter);
+    scene.filters = filters.length > 0 ? filters : null;
+  }
+
+  class ChromaticAberrationFilter extends PIXI.Filter {
+    constructor() {
+      const fragmentSrc = `
+        varying vec2 vTextureCoord;
+        uniform sampler2D uSampler;
+        uniform float intensity;
+
+        void main(void) {
+          vec2 redOffset = vec2(intensity, 0.0);
+          vec2 blueOffset = vec2(-intensity, 0.0);
+          float r = texture2D(uSampler, vTextureCoord + redOffset).r;
+          float g = texture2D(uSampler, vTextureCoord).g;
+          float b = texture2D(uSampler, vTextureCoord + blueOffset).b;
+          float a = texture2D(uSampler, vTextureCoord).a;
+          gl_FragColor = vec4(r, g, b, a);
+        }
+      `;
+
+      super(undefined, fragmentSrc, { intensity: 0.0 });
+    }
+
+    get intensity() {
+      return this.uniforms.intensity;
+    }
+
+    set intensity(value) {
+      this.uniforms.intensity = value;
+    }
+  }
+
+  function applyChromaticFilter() {
+    const scene = SceneManager._scene;
+    if (!scene) return;
+    if (!_chromaticFilter) {
+      _chromaticFilter = new ChromaticAberrationFilter();
+    }
+    const filters = scene.filters || [];
+    if (!filters.includes(_chromaticFilter)) {
+      filters.push(_chromaticFilter);
+      scene.filters = filters;
+    }
+    return _chromaticFilter;
+  }
+
+  function removeChromaticFilter() {
+    const scene = SceneManager._scene;
+    if (!scene || !_chromaticFilter) return;
+    const filters = (scene.filters || []).filter(f => f !== _chromaticFilter);
     scene.filters = filters.length > 0 ? filters : null;
   }
 
@@ -182,6 +234,9 @@
       this._chromaticDuration = Math.max(1, Number(duration || SED.Constants.DEFAULT_EFFECT_DURATION));
       this._chromaticTimer = this._chromaticDuration;
       this._chromaticEasing = String(easing || "linear");
+      if (this._chromaticTarget > 0) {
+        applyChromaticFilter();
+      }
     },
 
     reset(duration) {
@@ -204,6 +259,7 @@
       _vignetteSprite = null;
       _grainSprite = null;
       removeColorMatrixFilter();
+      removeChromaticFilter();
     },
 
     update() {
@@ -278,11 +334,20 @@
         const t = 1 - (this._chromaticTimer / this._chromaticDuration);
         const easeFn = Easing[this._chromaticEasing] || Easing.linear;
         const value = this._chromaticIntensity + (this._chromaticTarget - this._chromaticIntensity) * easeFn(t);
-        if (value > 0 && !_chromaticFilter) {
-          // Chromatic aberration requires custom shader; stubbed for now
-          SED.Logger.debug("Chromatic aberration active (intensity:", value.toFixed(2), ") — custom shader not yet implemented.");
+        if (value > 0) {
+          applyChromaticFilter();
+          if (_chromaticFilter) {
+            _chromaticFilter.intensity = value * 0.01;
+          }
+        } else if (_chromaticFilter) {
+          removeChromaticFilter();
         }
-        if (this._chromaticTimer === 0) this._chromaticIntensity = this._chromaticTarget;
+        if (this._chromaticTimer === 0) {
+          this._chromaticIntensity = this._chromaticTarget;
+          if (this._chromaticIntensity === 0) {
+            removeChromaticFilter();
+          }
+        }
       }
     }
   };

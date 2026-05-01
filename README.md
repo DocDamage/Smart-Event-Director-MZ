@@ -1,6 +1,6 @@
 # Smart Event Director MZ
 
-[![Version](https://img.shields.io/badge/version-v1.2-blue)](https://github.com/yourusername/SmartEventDirectorMZ)
+[![Version](https://img.shields.io/badge/version-v2.0-blue)](https://github.com/yourusername/SmartEventDirectorMZ)
 [![RPG Maker MZ](https://img.shields.io/badge/RPG%20Maker-MZ-green)](https://www.rpgmakerweb.com/products/rpg-maker-mz)
 [![License](https://img.shields.io/badge/license-MIT-yellow)](LICENSE)
 

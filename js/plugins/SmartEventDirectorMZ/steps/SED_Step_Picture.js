@@ -3,6 +3,8 @@
 
   const SED = window.SED;
 
+  // Picture changes are tracked by SED.Cleanup and restored on scene stop/fail.
+
   function getScreenPicture(id) {
     return $gameScreen.picture(Number(id));
   }
@@ -52,7 +54,7 @@
         const scaleY = Number(step.scaleY || 100);
         const opacity = Number(step.opacity || 255);
         const blendMode = Number(step.blendMode || 0);
-        const duration = Math.max(0, Number(step.duration || 30));
+        const duration = Math.max(0, Number(step.duration || SED.Constants.DEFAULT_EFFECT_DURATION));
 
         $gameScreen.movePicture(id, origin, x, y, scaleX, scaleY, opacity, blendMode, duration);
 
@@ -66,7 +68,7 @@
         $gameScreen.erasePicture(id);
       } else if (action === "tint") {
         const tone = step.tone || [0, 0, 0, 0];
-        const duration = Math.max(0, Number(step.duration || 30));
+        const duration = Math.max(0, Number(step.duration || SED.Constants.DEFAULT_EFFECT_DURATION));
 
         $gameScreen.tintPicture(id, tone, duration);
 

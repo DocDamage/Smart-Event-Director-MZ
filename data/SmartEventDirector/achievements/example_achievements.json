@@ -1,0 +1,8 @@
+{
+  "schema": "SED_ACHIEVEMENT_1",
+  "achievementId": "secret_room",
+  "title": "Secret Seeker",
+  "description": "Find the hidden room.",
+  "icon": "icon_star",
+  "hidden": false
+}

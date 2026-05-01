@@ -1,0 +1,8 @@
+{
+  "schema": "SED_ACHIEVEMENT_1",
+  "achievementId": "ninja_reflexes",
+  "title": "Ninja Reflexes",
+  "description": "Complete a QTE with perfect timing.",
+  "icon": "icon_ninja",
+  "hidden": false
+}

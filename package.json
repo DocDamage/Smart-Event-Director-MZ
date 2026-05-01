@@ -1,0 +1,10 @@
+{
+  "name": "smart-event-director-mz",
+  "version": "2.0.0",
+  "private": true,
+  "scripts": {
+    "test:editor": "cd editor && npm test",
+    "test:runtime": "cd js/plugins/SmartEventDirectorMZ && npx jest",
+    "test": "npm run test:editor && npm run test:runtime && pytest"
+  }
+}

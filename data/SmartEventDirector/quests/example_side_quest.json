@@ -1,0 +1,16 @@
+{
+  "schema": "SED_QUEST_1",
+  "questId": "side_quest_slimes",
+  "title": "Slime Extermination",
+  "description": "Clear the slimes from the eastern cave.",
+  "objectives": [
+    {
+      "id": "defeat_slimes",
+      "text": "Defeat 5 Slimes"
+    },
+    {
+      "id": "report_to_chief",
+      "text": "Report to the Village Chief"
+    }
+  ]
+}

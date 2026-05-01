@@ -1,0 +1,72 @@
+{
+  "schema": "SED_SCENE_1",
+  "sceneId": "example_relationship_scene",
+  "title": "Relationship Demo Scene",
+  "canSkip": true,
+  "steps": [
+    { "type": "lockPlayer" },
+    {
+      "type": "dialogue",
+      "speaker": "Mira",
+      "text": "We need to talk about our journey together."
+    },
+    {
+      "type": "choice",
+      "key": "mira_response",
+      "prompt": "How do you respond?",
+      "options": [
+        { "text": "You've been a great companion.", "jump": "friendly" },
+        { "text": "Let's just focus on the mission.", "jump": "distant" },
+        { "text": "I don't care.", "jump": "rude" }
+      ],
+      "cancel": "distant"
+    },
+    { "type": "label", "name": "friendly" },
+    {
+      "type": "dialogue",
+      "speaker": "Mira",
+      "text": "That means a lot to me!"
+    },
+    { "type": "relationship", "action": "add", "target": "Mira", "value": 10 },
+    { "type": "jump", "label": "end" },
+    { "type": "label", "name": "distant" },
+    {
+      "type": "dialogue",
+      "speaker": "Mira",
+      "text": "Right. The mission."
+    },
+    { "type": "relationship", "action": "add", "target": "Mira", "value": 2 },
+    { "type": "jump", "label": "end" },
+    { "type": "label", "name": "rude" },
+    {
+      "type": "dialogue",
+      "speaker": "Mira",
+      "text": "...I see."
+    },
+    { "type": "relationship", "action": "add", "target": "Mira", "value": -10 },
+    { "type": "label", "name": "end" },
+    {
+      "type": "condition",
+      "operator": "relationshipGte",
+      "target": "Mira",
+      "value": 5,
+      "jumpTrue": "high_affection",
+      "jumpFalse": "neutral"
+    },
+    { "type": "label", "name": "high_affection" },
+    {
+      "type": "dialogue",
+      "speaker": "Mira",
+      "text": "You know, I really trust you. Let's keep traveling together."
+    },
+    { "type": "jump", "label": "done" },
+    { "type": "label", "name": "neutral" },
+    {
+      "type": "dialogue",
+      "speaker": "Mira",
+      "text": "Let's keep moving. There's work to do."
+    },
+    { "type": "label", "name": "done" },
+    { "type": "unlockPlayer" }
+  ]
+}

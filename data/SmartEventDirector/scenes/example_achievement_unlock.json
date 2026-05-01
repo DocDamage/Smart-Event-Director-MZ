@@ -1,0 +1,11 @@
+{
+  "schema": "SED_SCENE_1",
+  "sceneId": "example_achievement_unlock",
+  "title": "Achievement Unlock Demo",
+  "canSkip": true,
+  "steps": [
+    { "type": "dialogue", "speaker": "Narrator", "text": "You found the secret room!" },
+    { "type": "unlockAchievement", "achievementId": "secret_room" },
+    { "type": "dialogue", "speaker": "Narrator", "text": "Check your achievements menu." }
+  ]
+}

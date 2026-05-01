@@ -1,0 +1,13 @@
+{
+  "schema": "SED_SCENE_1",
+  "sceneId": "example_bust_voice",
+  "title": "Bust and Voice Demo",
+  "canSkip": true,
+  "steps": [
+    { "type": "bust", "character": "mira", "emotion": "neutral", "position": "left", "action": "show", "enter": "slide" },
+    { "type": "dialogue", "speaker": "Mira", "bust": "mira", "emotion": "happy", "text": "Hello! Welcome to the bust system demo.", "voice": "mira_greeting" },
+    { "type": "bust", "character": "mira", "emotion": "shocked", "position": "left" },
+    { "type": "dialogue", "speaker": "Mira", "bust": "mira", "emotion": "shocked", "text": "Did you see that?!" },
+    { "type": "bust", "character": "mira", "action": "hide", "exit": "slideOut" }
+  ]
+}

@@ -12,110 +12,30 @@
     _activeHandler: null,
     _activeRuntime: null,
     _sceneTimeoutFrame: 0,
-
-    // v0.2: scene queue
+    _transferResumeData: null,
     _pendingQueue: [],
-
-    isBusy() {
-      return this._state === "running" || this._state === "starting";
-    },
-
-    hasPending() {
-      return this._pendingQueue.length > 0;
-    },
-
-    play(sceneId, options) {
-      options = options || {};
-
-      if (this.isBusy()) {
-        const allowQueue = SED.Params && SED.Params.allowSceneQueue;
-
-        if (allowQueue) {
-          this._pendingQueue.push({ sceneId: sceneId, options: options });
-          SED.Logger.info("Scene queued:", sceneId);
-          return true;
-        }
-
-        SED.Logger.warn("Cannot start scene while another scene is running:", sceneId);
-        return false;
-      }
-
-      const scene = SED.SceneRegistry.get(sceneId);
-
-      if (!scene) {
-        SED.Logger.error("Scene not found:", sceneId);
-        return false;
-      }
-
-      const errors = SED.SceneValidator.validateScene(scene);
-
-      if (errors.length > 0) {
-        SED.Logger.error("Scene validation failed:", sceneId, errors.join("; "));
-        return false;
-      }
-
-      this._state = "running";
-      this._scene = SED.Util.cloneJson(scene);
-      this._queue = new SED.StepQueue(this._scene.steps);
-      this._context = new SED.StepContext(this._scene, options);
-      this._activeStep = null;
-      this._activeHandler = null;
-      this._activeRuntime = null;
-
-      const timeout = Number(scene.timeoutFrames || SED.Params.defaultSceneTimeout || 3600);
-      this._sceneTimeoutFrame = Graphics.frameCount + timeout;
-
-      SED.Save.markPlayed(sceneId);
-      SED.Logger.info("Scene started:", sceneId);
-
-      return true;
-    },
-
-    stop(reason) {
-      reason = reason || "stopped";
-
-      if (this._activeHandler && this._activeHandler.cancel) {
-        try {
-          this._activeHandler.cancel(this._activeStep, this._context, this._activeRuntime);
-        } catch (error) {
-          SED.Logger.error("Error during step cancel:", error.message);
-        }
-      }
-
-      SED.Logger.info("Scene stopped:", reason);
-      this._forceIdle();
-    },
-
-    // v0.2: scene skip - stop current and start next if queued, else go idle
-    skip() {
-      if (this._state !== "running") return;
-
-      const scene = this._scene;
-
-      if (scene && scene.canSkip === false) {
-        SED.Logger.info("Scene skip prevented:", scene.sceneId);
-        return;
-      }
-
-      SED.Logger.info("Scene skipped:", scene ? scene.sceneId : "unknown");
-
-      if (this._activeHandler && this._activeHandler.cancel) {
-        try {
-          this._activeHandler.cancel(this._activeStep, this._context, this._activeRuntime);
-        } catch (error) {
-          SED.Logger.error("Error during step cancel:", error.message);
-        }
-      }
-
-      this._forceIdle();
-    },
+    _callStack: [],
 
     update() {
-      // v0.2: process queued scenes after previous completes
+      if (SED.EventBus) {
+        SED.EventBus.emit(SED.EventBus.Events.RUNNER_UPDATE_START, { sceneId: this._scene ? this._scene.sceneId : null, state: this._state });
+      }
+
+      if (this._state === "running" && SED.Params && SED.Params.enableSceneSkip !== false) {
+        const skipKey = (SED.Params && SED.Params.sceneSkipKeyName) || "cancel";
+        if (Input.isTriggered(skipKey)) {
+          this.skip();
+          return;
+        }
+      }
+
       if (this._state !== "running") {
         if (this._pendingQueue.length > 0) {
           const next = this._pendingQueue.shift();
           this.play(next.sceneId, next.options);
+        }
+        if (SED.EventBus) {
+          SED.EventBus.emit(SED.EventBus.Events.RUNNER_UPDATE_END, { sceneId: this._scene ? this._scene.sceneId : null, state: this._state });
         }
         return;
       }
@@ -131,6 +51,9 @@
 
         if (!this._activeStep) {
           this._completeScene();
+          if (SED.EventBus) {
+            SED.EventBus.emit(SED.EventBus.Events.RUNNER_UPDATE_END, { sceneId: this._scene ? this._scene.sceneId : null, state: this._state });
+          }
           return;
         }
 
@@ -145,6 +68,10 @@
         }
       } catch (error) {
         this._fail(error);
+      }
+
+      if (SED.EventBus) {
+        SED.EventBus.emit(SED.EventBus.Events.RUNNER_UPDATE_END, { sceneId: this._scene ? this._scene.sceneId : null, state: this._state });
       }
     },
 
@@ -162,15 +89,21 @@
         throw new Error("No handler for step type: " + step.type);
       }
 
+      const interpolatedStep = SED.Util.interpolateDeep(step);
+
       const runtime = {
         startedFrame: Graphics.frameCount
       };
 
-      this._activeStep = step;
+      this._activeStep = interpolatedStep;
       this._activeHandler = handler;
       this._activeRuntime = runtime;
 
-      handler.start(step, this._context, runtime);
+      if (SED.EventBus) {
+        SED.EventBus.emit(SED.EventBus.Events.RUNNER_STEP_START, { sceneId: this._scene.sceneId, type: interpolatedStep.type, step: interpolatedStep });
+      }
+
+      handler.start(interpolatedStep, this._context, runtime);
     },
 
     _finishActiveStep() {
@@ -186,6 +119,18 @@
         ctx.requestedJump = null;
       }
 
+      if (SED.Rewind && SED.Rewind.takeSnapshot) {
+        SED.Rewind.takeSnapshot();
+      }
+
+      if (SED.EventBus) {
+        SED.EventBus.emit(SED.EventBus.Events.RUNNER_STEP_END, { sceneId: this._scene.sceneId, nodeId: this._queue.currentNodeId() });
+      }
+
+      if (SED.Recorder && SED.Recorder.isRecording && SED.Recorder.isRecording() && this._activeStep) {
+        SED.Recorder.log(this._activeStep.type, SED.Util.cloneJson(this._activeStep));
+      }
+
       this._activeStep = null;
       this._activeHandler = null;
       this._activeRuntime = null;
@@ -194,11 +139,35 @@
     _completeScene() {
       SED.Save.markCompleted(this._scene.sceneId);
       SED.Logger.info("Scene completed:", this._scene.sceneId);
+
+      if (SED.EventBus) {
+        SED.EventBus.emit(SED.EventBus.Events.RUNNER_SCENE_COMPLETE, { sceneId: this._scene.sceneId });
+      }
+
+      if (this._callStack.length > 0) {
+        const entry = this._callStack.pop();
+        this._scene = entry.scene;
+        this._queue = entry.queue;
+        this._context = entry.context;
+        this._sceneTimeoutFrame = entry.timeoutFrame;
+        if (entry.returnLabel) {
+          this._queue.jumpTo(entry.returnLabel);
+        }
+        SED.Logger.info("Returned to scene:", entry.sceneId);
+        return;
+      }
+
       this._forceIdle();
     },
 
     _fail(error) {
       SED.Logger.error("Scene failed:", error.message);
+
+      if (SED.EventBus) {
+        SED.EventBus.emit(SED.EventBus.Events.RUNNER_SCENE_FAIL, { sceneId: this._scene ? this._scene.sceneId : null, error: error.message });
+      }
+
+      SED.Cleanup.restore();
 
       if (SED.Failsafe) {
         SED.Failsafe.recover(error.message);
@@ -208,6 +177,8 @@
     },
 
     _forceIdle() {
+      SED.Cleanup.clear();
+
       this._state = "idle";
       this._scene = null;
       this._queue = null;
@@ -216,9 +187,66 @@
       this._activeHandler = null;
       this._activeRuntime = null;
       this._sceneTimeoutFrame = 0;
+      this._transferResumeData = null;
+      this._callStack = [];
+    },
+
+    _cancelActiveStep() {
+      if (this._activeHandler && this._activeHandler.cancel) {
+        try {
+          this._activeHandler.cancel(this._activeStep, this._context, this._activeRuntime);
+        } catch (error) {
+          SED.Logger.error("Error during step cancel:", error.message);
+        }
+      }
+    },
+
+    stop(reason) {
+      reason = reason || "stopped";
+
+      if (SED.EventBus) {
+        SED.EventBus.emit(SED.EventBus.Events.RUNNER_STOP, { sceneId: this._scene ? this._scene.sceneId : null, reason: reason });
+      }
+
+      this._cancelActiveStep();
+
+      if (SED.Tween) SED.Tween.clear();
+      if (SED.VoiceManager) SED.VoiceManager.stop();
+
+      SED.Cleanup.restore();
+      SED.Logger.info("Scene stopped:", reason);
+      this._forceIdle();
+    },
+
+    skip() {
+      if (this._state !== "running") return;
+
+      const scene = this._scene;
+
+      if (scene && scene.canSkip === false) {
+        SED.Logger.info("Scene skip prevented:", scene.sceneId);
+        return;
+      }
+
+      SED.Logger.info("Scene skipped:", scene ? scene.sceneId : "unknown");
+
+      this._cancelActiveStep();
+
+      if (SED.Tween) SED.Tween.clear();
+      if (SED.VoiceManager) SED.VoiceManager.stop();
+
+      this._forceIdle();
     }
   };
 
   SED.Runner = Runner;
-  SED.registerModule("Runner", "0.2.0");
+  SED.registerModule("Runner", "1.3.0");
+
+  if (SED.UpdateDispatcher) {
+    SED.UpdateDispatcher.register("Runner", {
+      update: function() { if (SED.Runner && SED.Runner.update) SED.Runner.update(); },
+      priority: 0,
+      contexts: ["map", "battle"]
+    });
+  }
 })();

@@ -1,0 +1,1072 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/sed/scene.schema.json",
+  "title": "Smart Event Director Scene",
+  "type": "object",
+  "required": ["schema", "sceneId", "steps"],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "enum": ["SED_SCENE_1"]
+    },
+    "sceneId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "title": {
+      "type": "string"
+    },
+    "canSkip": {
+      "type": "boolean"
+    },
+    "timeoutFrames": {
+      "type": "number",
+      "minimum": 0
+    },
+    "context": {
+      "type": "string",
+      "enum": ["map", "battle", "both"],
+      "description": "Where this scene may run. 'both' allows any context."
+    },
+    "layer": {
+      "type": "boolean",
+      "description": "If true, this scene is designed to run as a parallel layer."
+    },
+    "priority": {
+      "type": "number",
+      "description": "Layer priority when running as a parallel layer. Higher = later update."
+    },
+    "triggers": {
+      "type": "array",
+      "description": "Auto-start triggers for this scene.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string", "enum": ["mapEnter", "proximity", "switch", "variable"] },
+          "mapId": { "type": "number" },
+          "x": { "type": "number" },
+          "y": { "type": "number" },
+          "radius": { "type": "number" },
+          "switchId": { "type": "number" },
+          "switchValue": { "type": "boolean" },
+          "varId": { "type": "number" },
+          "varOp": { "type": "string", "enum": ["eq", "gt", "lt", "gte", "lte"] },
+          "varValue": { "type": "number" }
+        }
+      }
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/step"
+      }
+    }
+  },
+  "definitions": {
+    "step": {
+      "type": "object",
+      "required": ["type"],
+      "oneOf": [
+        {
+          "$ref": "#/definitions/dialogueStep"
+        },
+        {
+          "$ref": "#/definitions/narrationStep"
+        },
+        {
+          "$ref": "#/definitions/choiceStep"
+        },
+        {
+          "$ref": "#/definitions/waitStep"
+        },
+        {
+          "$ref": "#/definitions/switchStep"
+        },
+        {
+          "$ref": "#/definitions/variableStep"
+        },
+        {
+          "$ref": "#/definitions/fadeOutStep"
+        },
+        {
+          "$ref": "#/definitions/fadeInStep"
+        },
+        {
+          "$ref": "#/definitions/moveOneTileStep"
+        },
+        {
+          "$ref": "#/definitions/moveToStep"
+        },
+        {
+          "$ref": "#/definitions/moveRouteStep"
+        },
+        {
+          "$ref": "#/definitions/lockPlayerStep"
+        },
+        {
+          "$ref": "#/definitions/unlockPlayerStep"
+        },
+        {
+          "$ref": "#/definitions/labelStep"
+        },
+        {
+          "$ref": "#/definitions/jumpStep"
+        },
+        {
+          "$ref": "#/definitions/loopStep"
+        },
+        {
+          "$ref": "#/definitions/endLoopStep"
+        },
+        {
+          "$ref": "#/definitions/conditionStep"
+        },
+        {
+          "$ref": "#/definitions/scriptStep"
+        },
+        {
+          "$ref": "#/definitions/commentStep"
+        },
+        {
+          "$ref": "#/definitions/commonEventStep"
+        },
+        {
+          "$ref": "#/definitions/selfSwitchStep"
+        },
+        {
+          "$ref": "#/definitions/audioStep"
+        },
+        {
+          "$ref": "#/definitions/pictureStep"
+        },
+        {
+          "$ref": "#/definitions/cameraStep"
+        },
+        {
+          "$ref": "#/definitions/weatherStep"
+        },
+        {
+          "$ref": "#/definitions/transitionStep"
+        },
+        {
+          "$ref": "#/definitions/titleCardStep"
+        },
+        {
+          "$ref": "#/definitions/startQuestStep"
+        },
+        {
+          "$ref": "#/definitions/updateObjectiveStep"
+        },
+        {
+          "$ref": "#/definitions/completeQuestStep"
+        },
+        {
+          "$ref": "#/definitions/failQuestStep"
+        },
+        {
+          "$ref": "#/definitions/questRewardStep"
+        },
+        {
+          "$ref": "#/definitions/relationshipStep"
+        },
+        {
+          "$ref": "#/definitions/callSceneStep"
+        },
+        {
+          "$ref": "#/definitions/returnStep"
+        },
+        {
+          "$ref": "#/definitions/checkpointStep"
+        },
+        {
+          "$ref": "#/definitions/preloadStep"
+        },
+        {
+          "$ref": "#/definitions/bustStep"
+        },
+        {
+          "$ref": "#/definitions/qteStep"
+        },
+        {
+          "$ref": "#/definitions/timelineStep"
+        },
+        {
+          "$ref": "#/definitions/unlockAchievementStep"
+        }
+      ]
+    },
+    "dialogueStep": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["dialogue"]
+        },
+        "speaker": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "faceName": {
+          "type": "string"
+        },
+        "faceIndex": {
+          "type": "number"
+        },
+        "textSpeed": {
+          "type": "number"
+        },
+        "autoAdvance": {
+          "type": "number"
+        },
+        "voice": {
+          "type": "string"
+        },
+        "bust": {
+          "type": "string"
+        },
+        "emotion": {
+          "type": "string"
+        },
+        "theme": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "narrationStep": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["narration"]
+        },
+        "text": {
+          "type": "string"
+        },
+        "textSpeed": {
+          "type": "number"
+        },
+        "autoAdvance": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "choiceStep": {
+      "type": "object",
+      "required": ["type", "key", "prompt", "options"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["choice"]
+        },
+        "key": {
+          "type": "string"
+        },
+        "prompt": {
+          "type": "string"
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              },
+              "jump": {
+                "type": "string"
+              },
+              "condition": {
+                "type": "object",
+                "description": "Condition that must be true for this option to appear.",
+                "properties": {
+                  "switchId": { "type": "number" },
+                  "switchValue": { "type": "boolean" },
+                  "varId": { "type": "number" },
+                  "varOp": { "type": "string", "enum": ["eq", "gt", "lt", "gte", "lte"] },
+                  "varValue": { "type": "number" }
+                }
+              }
+            }
+          }
+        },
+        "timeout": {
+          "type": "number",
+          "description": "Frames before auto-selecting default."
+        },
+        "timeoutBehavior": {
+          "type": "string",
+          "enum": ["selectDefault", "cancel", "jump"],
+          "description": "What happens when timeout expires."
+        },
+        "timeoutDefaultIndex": {
+          "type": "number",
+          "description": "Option index to auto-select on timeout."
+        },
+        "timeoutJump": {
+          "type": "string",
+          "description": "Label to jump to when timeoutBehavior is 'jump'."
+        },
+        "cancel": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "defaultIndex": {
+          "type": "number"
+        },
+        "conditionMode": {
+          "type": "string",
+          "enum": ["hidden", "disabled"],
+          "description": "How to handle options that fail their condition."
+        }
+      },
+      "additionalProperties": false
+    },
+    "waitStep": {
+      "type": "object",
+      "required": ["type", "frames"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["wait"]
+        },
+        "frames": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "switchStep": {
+      "type": "object",
+      "required": ["type", "id", "value"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["switch"]
+        },
+        "id": {
+          "type": "number"
+        },
+        "value": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "variableStep": {
+      "type": "object",
+      "required": ["type", "id", "operation", "value"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["variable"]
+        },
+        "id": {
+          "type": "number"
+        },
+        "operation": {
+          "type": "string",
+          "enum": ["set", "add", "sub", "mul", "div", "mod"]
+        },
+        "value": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "fadeOutStep": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["fadeOut"]
+        },
+        "duration": {
+          "type": "number"
+        },
+        "wait": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "fadeInStep": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["fadeIn"]
+        },
+        "duration": {
+          "type": "number"
+        },
+        "wait": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "moveOneTileStep": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["moveOneTile"]
+        },
+        "eventId": {
+          "type": "number"
+        },
+        "direction": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "wait": {
+          "type": "boolean"
+        },
+        "timeoutFrames": {
+          "type": "number"
+        },
+        "failBehavior": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "moveToStep": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["moveTo"]
+        },
+        "eventId": {
+          "type": "number"
+        },
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        },
+        "wait": {
+          "type": "boolean"
+        },
+        "timeoutFrames": {
+          "type": "number"
+        },
+        "failBehavior": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "moveRouteStep": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["moveRoute"]
+        },
+        "eventId": {
+          "type": "number"
+        },
+        "commands": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "wait": {
+          "type": "boolean"
+        },
+        "timeoutFrames": {
+          "type": "number"
+        },
+        "failBehavior": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "lockPlayerStep": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["lockPlayer"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "unlockPlayerStep": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["unlockPlayer"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "labelStep": {
+      "type": "object",
+      "required": ["type", "name"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["label"]
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "jumpStep": {
+      "type": "object",
+      "required": ["type", "label"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["jump"]
+        },
+        "label": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "loopStep": {
+      "type": "object",
+      "required": ["type", "label"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["loop"]
+        },
+        "label": {
+          "type": "string"
+        },
+        "maxIterations": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "endLoopStep": {
+      "type": "object",
+      "required": ["type", "label"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["endLoop"]
+        },
+        "label": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "conditionStep": {
+      "type": "object",
+      "required": ["type", "operator"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["condition"]
+        },
+        "operator": {
+          "type": "string"
+        },
+        "jumpTrue": {
+          "type": "string"
+        },
+        "jumpFalse": {
+          "type": "string"
+        },
+        "elseJump": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "scriptStep": {
+      "type": "object",
+      "required": ["type", "code"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["script"]
+        },
+        "code": {
+          "type": "string"
+        },
+        "wait": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "commentStep": {
+      "type": "object",
+      "required": ["type", "text"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["comment"]
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "commonEventStep": {
+      "type": "object",
+      "required": ["type", "id"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["commonEvent"]
+        },
+        "id": {
+          "type": "number"
+        },
+        "wait": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "selfSwitchStep": {
+      "type": "object",
+      "required": ["type", "eventId", "letter", "value"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["selfSwitch"]
+        },
+        "eventId": {
+          "type": "number"
+        },
+        "letter": {
+          "type": "string",
+          "enum": ["A", "B", "C", "D"]
+        },
+        "value": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "audioStep": {
+      "type": "object",
+      "required": ["type", "action", "name"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["audio"]
+        },
+        "action": {
+          "type": "string",
+          "enum": ["bgm", "bgs", "se", "me", "stopBgm", "stopBgs", "stopAll"]
+        },
+        "name": {
+          "type": "string"
+        },
+        "volume": {
+          "type": "number"
+        },
+        "pitch": {
+          "type": "number"
+        },
+        "pan": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "pictureStep": {
+      "type": "object",
+      "required": ["type", "action", "id"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["picture"]
+        },
+        "action": {
+          "type": "string",
+          "enum": ["show", "move", "erase", "tint"]
+        },
+        "id": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": true
+    },
+    "cameraStep": {
+      "type": "object",
+      "required": ["type", "action"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["camera"]
+        },
+        "action": {
+          "type": "string",
+          "enum": ["scroll", "focus", "reset", "shake", "zoomTo", "flash", "tint"]
+        }
+      },
+      "additionalProperties": true
+    },
+    "weatherStep": {
+      "type": "object",
+      "required": ["type", "action"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["weather"]
+        },
+        "action": {
+          "type": "string",
+          "enum": ["set", "clear", "fade"]
+        },
+        "weatherType": {
+          "type": "string"
+        },
+        "power": {
+          "type": "number"
+        },
+        "duration": {
+          "type": "number"
+        },
+        "wait": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "transitionStep": {
+      "type": "object",
+      "required": ["type", "effect"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["transition"]
+        },
+        "effect": {
+          "type": "string",
+          "enum": ["fade", "fadeWhite", "wipe", "mosaic", "instant"]
+        },
+        "duration": {
+          "type": "number"
+        },
+        "wait": {
+          "type": "boolean"
+        },
+        "color": {
+          "type": "array"
+        }
+      },
+      "additionalProperties": false
+    },
+    "titleCardStep": {
+      "type": "object",
+      "required": ["type", "title"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["titleCard"]
+        },
+        "title": {
+          "type": "string"
+        },
+        "subtitle": {
+          "type": "string"
+        },
+        "duration": {
+          "type": "number"
+        },
+        "fadeIn": {
+          "type": "number"
+        },
+        "fadeOut": {
+          "type": "number"
+        },
+        "wait": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "startQuestStep": {
+      "type": "object",
+      "required": ["type", "questId"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["startQuest"]
+        },
+        "questId": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "updateObjectiveStep": {
+      "type": "object",
+      "required": ["type", "questId", "objective"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["updateObjective"]
+        },
+        "questId": {
+          "type": "string"
+        },
+        "objective": {
+          "type": "string"
+        },
+        "completed": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "completeQuestStep": {
+      "type": "object",
+      "required": ["type", "questId"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["completeQuest"]
+        },
+        "questId": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "failQuestStep": {
+      "type": "object",
+      "required": ["type", "questId"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["failQuest"]
+        },
+        "questId": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "questRewardStep": {
+      "type": "object",
+      "required": ["type", "questId"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["questReward"]
+        },
+        "questId": {
+          "type": "string"
+        },
+        "gold": {
+          "type": "number"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "number"
+              },
+              "quantity": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "weapons": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "number"
+              },
+              "quantity": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "armors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "number"
+              },
+              "quantity": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "exp": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "relationshipStep": {
+      "type": "object",
+      "required": ["type", "target", "action", "value"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["relationship"]
+        },
+        "target": {
+          "type": "string"
+        },
+        "action": {
+          "type": "string",
+          "enum": ["set", "add"]
+        },
+        "value": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "callSceneStep": {
+      "type": "object",
+      "required": ["type", "sceneId"],
+      "properties": {
+        "type": { "type": "string", "enum": ["callScene"] },
+        "sceneId": { "type": "string" },
+        "returnLabel": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "returnStep": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "enum": ["return"] }
+      },
+      "additionalProperties": false
+    },
+    "checkpointStep": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "enum": ["checkpoint"] },
+        "id": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "preloadStep": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "enum": ["preload"] },
+        "images": { "type": "array", "items": { "type": "string" } },
+        "audio": { "type": "array", "items": { "type": "object" } }
+      },
+      "additionalProperties": false
+    },
+    "bustStep": {
+      "type": "object",
+      "required": ["type", "character"],
+      "properties": {
+        "type": { "type": "string", "enum": ["bust"] },
+        "character": { "type": "string" },
+        "emotion": { "type": "string" },
+        "position": { "type": "string" },
+        "action": { "type": "string", "enum": ["show", "hide", "move"] },
+        "enter": { "type": "string" },
+        "exit": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "qteStep": {
+      "type": "object",
+      "required": ["type", "variant"],
+      "properties": {
+        "type": { "type": "string", "enum": ["qte"] },
+        "variant": { "type": "string", "enum": ["press", "mash", "sequence"] },
+        "prompt": { "type": "string" },
+        "key": { "type": "string" },
+        "window": { "type": "number" },
+        "target": { "type": "number" },
+        "timeLimit": { "type": "number" },
+        "keys": { "type": "array", "items": { "type": "string" } },
+        "successJump": { "type": "string" },
+        "failJump": { "type": "string" },
+        "storeResult": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "timelineStep": {
+      "type": "object",
+      "required": ["type", "target", "keyframes"],
+      "properties": {
+        "type": { "type": "string", "enum": ["timeline"] },
+        "target": { "type": "string", "enum": ["camera"] },
+        "keyframes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "frame": { "type": "number" },
+              "x": { "type": "number" },
+              "y": { "type": "number" },
+              "zoom": { "type": "number" },
+              "easing": { "type": "string" }
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "unlockAchievementStep": {
+      "type": "object",
+      "required": ["type", "achievementId"],
+      "properties": {
+        "type": { "type": "string", "enum": ["unlockAchievement"] },
+        "achievementId": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

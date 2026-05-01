@@ -1,0 +1,69 @@
+{
+  "schema": "SED_SCENE_1",
+  "sceneId": "example_quest_scene",
+  "title": "Quest Demo Scene",
+  "canSkip": false,
+  "steps": [
+    { "type": "lockPlayer" },
+    {
+      "type": "dialogue",
+      "speaker": "Mira",
+      "text": "I need your help with something!"
+    },
+    {
+      "type": "startQuest",
+      "questId": "tutorial_quest"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Mira",
+      "text": "I've added a new quest to your journal. Go collect some herbs and bring them back."
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Mira",
+      "text": "Check your quest tracker to see your progress."
+    },
+    {
+      "type": "updateObjective",
+      "questId": "tutorial_quest",
+      "objective": "talk_to_mira",
+      "completed": true
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Mira",
+      "text": "You found the herbs! Let me mark that off."
+    },
+    {
+      "type": "updateObjective",
+      "questId": "tutorial_quest",
+      "objective": "collect_herbs",
+      "completed": true
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Mira",
+      "text": "And you returned to me. Excellent work!"
+    },
+    {
+      "type": "completeQuest",
+      "questId": "tutorial_quest"
+    },
+    {
+      "type": "questReward",
+      "questId": "tutorial_quest",
+      "gold": 100,
+      "exp": 50,
+      "items": [
+        { "id": 1, "quantity": 3 }
+      ]
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Mira",
+      "text": "Here are 100 gold and 50 EXP for your trouble!"
+    },
+    { "type": "unlockPlayer" }
+  ]
+}

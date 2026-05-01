@@ -47,7 +47,45 @@
       lines.push("Idle");
     }
 
+    // v0.3: Show quest and relationship state
+    if (SED.QuestState) {
+      const activeQuests = SED.QuestState.getActiveQuests();
+      if (activeQuests.length > 0) {
+        lines.push("--- Active Quests ---");
+        activeQuests.forEach(function(q) {
+          const qs = SED.QuestState._getRawState(q.questId);
+          if (qs) {
+            const doneCount = Object.keys(qs.objectives).filter(function(k) { return qs.objectives[k]; }).length;
+            const totalCount = Object.keys(qs.objectives).length;
+            lines.push(q.title + " (" + doneCount + "/" + totalCount + ")");
+          }
+        });
+      }
+    }
+
+    if (SED.RelationshipState) {
+      const rels = SED.RelationshipState.getRelationships();
+      const relKeys = Object.keys(rels);
+      if (relKeys.length > 0) {
+        lines.push("--- Relationships ---");
+        relKeys.forEach(function(key) {
+          lines.push(key + ": " + rels[key]);
+        });
+      }
+    }
+
+    if (SED.Profiler && SED.Profiler.getFrameStats) {
+      const stats = SED.Profiler.getFrameStats();
+      if (stats && stats.average) {
+        lines.push("Avg Frame: " + stats.average.toFixed(2) + " ms");
+      }
+    }
+
     textCache = lines;
+
+    if (SED.EventBus) {
+      SED.EventBus.emit(SED.EventBus.Events.OVERLAY_UPDATE);
+    }
   }
 
   function draw() {
@@ -79,6 +117,10 @@
       bitmap.textSize = 14;
       bitmap.drawText(text, 5, 5 + index * 20, 290, 18, "left");
     });
+
+    if (SED.EventBus) {
+      SED.EventBus.emit(SED.EventBus.Events.OVERLAY_DRAW);
+    }
   }
 
   const _Scene_Map_createDisplayObjects = Scene_Map.prototype.createDisplayObjects;
@@ -105,4 +147,13 @@
   };
 
   SED.registerModule("DebugOverlay", "0.2.0");
+
+  if (SED.UpdateDispatcher) {
+    SED.UpdateDispatcher.register("DebugOverlay", {
+      update: function() { if (SED.DebugOverlay && SED.DebugOverlay.update) SED.DebugOverlay.update(); },
+      draw: function() { if (SED.DebugOverlay && SED.DebugOverlay.draw) SED.DebugOverlay.draw(); },
+      priority: 200,
+      contexts: ["map"]
+    });
+  }
 })();

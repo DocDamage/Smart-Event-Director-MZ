@@ -1,0 +1,10 @@
+{
+  "locale.demo.intro": "Welcome to the localization demo.",
+  "locale.demo.guide_speak": "I can speak any language you configure.",
+  "locale.demo.choice_prompt": "Do you like this feature?",
+  "locale.demo.choice_yes": "Yes, it's great!",
+  "locale.demo.choice_no": "Not really.",
+  "locale.demo.response_yes": "Glad you like it!",
+  "locale.demo.response_no": "Maybe it will grow on you.",
+  "locale.demo.outro": "End of demo."
+}

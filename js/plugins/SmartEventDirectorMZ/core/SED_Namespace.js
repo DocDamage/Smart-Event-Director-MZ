@@ -3,7 +3,7 @@
 
   const SED = window.SED = window.SED || {};
 
-  SED.version = "0.2.0";
+  SED.version = "2.0.0";
   SED.modules = SED.modules || {};
 
   SED.registerModule = function(name, version) {

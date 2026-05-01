@@ -57,6 +57,154 @@ That is what keeps the project modular, testable, and easy for an LLM to code wi
 
 ---
 
+## Implementation Progress
+
+### v0.1 — Core Engine ✅ (Complete)
+
+- [x] Scene loading via XHR JSON
+- [x] Scene registry (SED_SceneRegistry.js)
+- [x] Scene validation (SED_SceneValidator.js)
+- [x] Scene runner (SED_Runner.js) — frame-based, no switch/case
+- [x] Step registry (SED_StepRegistry.js)
+- [x] Plugin commands: PlayScene, StopScene, RecoverScene
+- [x] Player lock (SED_Locks.js) — reference-counted
+- [x] Dialogue / Narration step (SED_Step_Dialogue.js)
+- [x] Choice step with memory (SED_Step_Choice.js)
+- [x] Wait step (SED_Step_Wait.js)
+- [x] Switch / Variable step (SED_Step_SwitchVariable.js)
+- [x] Fade step (fadeOut/fadeIn) (SED_Step_Fade.js)
+- [x] Movement (moveOneTile/moveTo) (SED_Step_Movement.js)
+- [x] Label / Jump step (SED_Step_LabelJump.js)
+- [x] Save/load support (SED_Save.js)
+- [x] Failsafe recovery (SED_Failsafe.js)
+- [x] Module loader boot sequence
+- [x] Game_Interpreter wait-mode patch (sedScene)
+- [x] Scene_Map update patch
+- [x] ALL files under 450 line warning threshold
+
+### v0.2 — Cinematic & Condition Features ✅ (Complete)
+
+- [x] Common event step (SED_Step_CommonEvent.js)
+- [x] Condition step (SED_Step_Condition.js)
+- [x] Self switch step (SED_Step_SelfSwitch.js)
+- [x] Audio step (SED_Step_Audio.js)
+- [x] Picture step (SED_Step_Picture.js)
+- [x] Camera step (SED_Step_Camera.js)
+- [x] Debug overlay (SED_DebugOverlay.js)
+- [x] Scene skip with Escape key
+- [x] Scene queue (optional)
+- [x] Plugin commands: SkipScene, ToggleDebug
+- [x] Example scenes: cinematic, picture_demo
+
+### v0.3 — Quest & Relationship System ✅ (Complete)
+
+- [x] Quest registry (SED_QuestRegistry.js)
+- [x] Quest state tracking (SED_QuestState.js)
+- [x] Relationship state (SED_RelationshipState.js)
+- [x] Quest step handlers: startQuest, updateObjective, completeQuest, failQuest, questReward (SED_Step_Quest.js)
+- [x] Relationship step handler (SED_Step_Relationship.js)
+- [x] Quest condition operators: questActive, questCompleted, questFailed, questObjectiveDone
+- [x] Relationship condition operators: relationshipGte, relationshipLte, relationshipIs
+- [x] Quest toast notifications (SED_QuestToast.js)
+- [x] Quest tracker HUD (SED_QuestTracker.js)
+- [x] Save/load integration for quest and relationship state
+- [x] Plugin commands: SetRelationship, AddRelationship, StartQuest, CompleteQuest, FailQuest, UpdateObjective
+- [x] Example quest data (tutorial_quest, side_quest)
+- [x] Example scenes (quest_scene, relationship_scene)
+
+### v0.4 Roadmap ✅ (Complete)
+
+- [x] Command buffering (choose-ahead dialogue) — `SED_InputManager.js`
+- [x] Dialogue log (scrollable text history) — `SED_DialogueLog.js`
+- [x] Expanded TMX/Tiled map integration — basic support via `data/SmartEventDirector/index.json`
+- [x] Better move route support — `SED_Step_MoveRoute.js`
+- [x] Common event waiting improvements — `SED_Step_CommonEvent.js`
+
+---
+
+## v2.0 Release Roadmap
+
+### ✅ Already Implemented (was listed as v1.0)
+
+**Stability & Hardening**
+- [x] Save during active scene — `SED_Save.js`, `SED_RunnerState.js`, `SED_Checkpoint.js`
+- [x] Load mid-scene recovery — `SED_RunnerStack.js`, `SED_RunnerScene.js`
+- [x] Cross-map scenes — `SED_RunnerTransfer.js`
+- [x] Event page change detection — logged in `SED_Runner.js`
+- [x] Erased event handling — `SED_Step_Movement.js`, `SED_Runner.js`
+- [x] Plugin parameter validation — `SED_Params.js` `validate()`
+- [x] Missing file recovery — `SED_DataLoader.js` warns and continues
+- [x] Circular jump detection — `SED_SceneValidator.js`
+
+**Core Features**
+- [x] Move route step — `SED_Step_MoveRoute.js`
+- [x] Script/eval step — `SED_Step_Script.js`
+- [x] Comment step — `SED_Step_Comment.js`
+- [x] Condition else/jump — `elseJump` field in condition steps
+- [x] Loop step — `SED_Step_Loop.js`, `SED_Step_Return.js`
+- [x] Common event async wait — `SED_Step_CommonEvent.js`
+- [x] Text interpolation — `\v[n]`, `\n[n]`, `\p[n]`, `\t[key]` in `SED_Util.js`
+
+**UI/UX**
+- [x] Dialogue log — `SED_DialogueLog.js`
+- [x] Command buffering — `SED_InputManager.js`
+- [x] Text speed control — `SED_TextEffects.js`
+- [x] Auto-advance mode — `SED_TextEffects.js`
+- [x] Typewriter effect — `SED_TextEffects.js`
+- [x] Quest log window — `SED_QuestLog.js`, `SED_Window_QuestList.js`, etc.
+- [x] Quest notification config — `SED_QuestToast.js`, plugin params
+- [x] Relationship viewer — `SED_RelationshipViewer.js`
+- [x] Scene title card — `SED_Step_TitleCard.js`
+
+**Documentation**
+- [x] Plugin help file — `@help` block in `SmartEventDirectorMZ.js`
+- [x] Step type reference — `docs/STEP_TYPES.md`
+- [x] Getting started guide — `docs/GETTING_STARTED.md`
+- [x] Quest system guide — `docs/QUEST_SYSTEM.md`
+- [x] Condition operator reference — `docs/CONDITIONS.md`
+- [x] API reference — `docs/API_REFERENCE.md`
+- [x] README overhaul — `README.md` (488 lines)
+
+**Performance**
+- [x] Profiled runner — `SED_Profiler.js`
+- [x] Picture cleanup — `SED_Cleanup.js`
+- [x] Audio cleanup — `SED_Cleanup.js`
+- [x] Scene transition effects — `SED_Step_Transition.js`
+- [x] Configurable keybinds — `sceneSkipKeyName`, `dialogueLogKeyName`, viewer cancel keys
+
+**Developer Tooling**
+- [x] JSON schema — `docs/schema/*.schema.json`
+- [x] Scene validator CLI — `tools/validate_sed_data.py`
+- [x] Scene template generator — `tools/generate_template.py`
+- [x] Hot-reload mode — `SED_HotReload.js`
+
+### 🟡 Remaining for v2.0 Gold
+
+**Testing (manual)**
+- [ ] Plugin conflict test — test with VisuStella, Yanfly, Galv, other common plugins
+- [ ] Stress test — run 50+ scenes consecutively, check memory
+- [ ] Save/load test — save mid-scene, load old saves without SED data
+- [ ] Failsafe test — missing event, timeout, bad JSON all recover gracefully
+
+**Graphics**
+- [x] Chromatic aberration shader — `ChromaticAberrationFilter` in `SED_ScreenEffects.js`
+
+**Polish**
+- [ ] Memory leak check — verify no leaked references after dozens of plays
+- [x] Example project — `Documents/RPGMakerMZ/SED_Example` with 15 demo events
+
+### Summary: v2.0 Target
+
+| Category | Items | Priority |
+|---|---|---|
+| Already Implemented | ~56 | ✅ Done |
+| Testing (manual) | 4 | 🟡 High |
+| Polish | 2 | 🟢 Medium |
+| **Total Remaining** | **6** | |
+
+---
+
+
 ## Version 0.1 Scope
 
 Build this first:

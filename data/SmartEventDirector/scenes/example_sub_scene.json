@@ -1,0 +1,13 @@
+{
+  "schema": "SED_SCENE_1",
+  "sceneId": "example_sub_scene",
+  "title": "Sub-Scene Demo",
+  "canSkip": true,
+  "steps": [
+    { "type": "dialogue", "speaker": "Narrator", "text": "You enter the tavern." },
+    { "type": "callScene", "sceneId": "example_sub_scene_greeting", "returnLabel": "afterGreeting" },
+    { "type": "label", "name": "afterGreeting" },
+    { "type": "dialogue", "speaker": "Narrator", "text": "You take a seat by the fire." },
+    { "type": "dialogue", "speaker": "Bard", "text": "Care for a song?" }
+  ]
+}

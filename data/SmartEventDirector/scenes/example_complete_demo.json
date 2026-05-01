@@ -1,0 +1,121 @@
+{
+  "schema": "SED_SCENE_1",
+  "sceneId": "example_complete_demo",
+  "title": "Complete Feature Demo",
+  "canSkip": true,
+  "timeoutFrames": 3600,
+  "steps": [
+    { "type": "lockPlayer" },
+    {
+      "type": "titleCard",
+      "title": "Smart Event Director MZ",
+      "subtitle": "Complete Demo",
+      "duration": 120,
+      "fadeIn": 30,
+      "fadeOut": 30,
+      "wait": true
+    },
+    {
+      "type": "transition",
+      "effect": "fadeWhite",
+      "duration": 30,
+      "wait": true
+    },
+    {
+      "type": "audio",
+      "action": "bgm",
+      "name": "Theme2",
+      "volume": 80,
+      "pitch": 100
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Guide",
+      "text": "Welcome to the complete demo. Watch as we showcase many features at once.",
+      "textSpeed": 2
+    },
+    {
+      "type": "choice",
+      "key": "demo_choice",
+      "prompt": "Are you ready?",
+      "options": [
+        { "text": "Yes, let's go!", "jump": "ready" },
+        { "text": "Not yet.", "jump": "not_ready" }
+      ],
+      "cancel": "not_ready"
+    },
+    { "type": "label", "name": "ready" },
+    { "type": "dialogue", "speaker": "Guide", "text": "Excellent! Here we go." },
+    { "type": "jump", "label": "action_start" },
+    { "type": "label", "name": "not_ready" },
+    { "type": "dialogue", "speaker": "Guide", "text": "Take your time. We'll proceed anyway." },
+    { "type": "jump", "label": "action_start" },
+    { "type": "label", "name": "action_start" },
+    {
+      "type": "condition",
+      "operator": "choiceIs",
+      "choiceKey": "demo_choice",
+      "choiceIndex": 0,
+      "jumpTrue": "enthusiastic",
+      "jumpFalse": "cautious"
+    },
+    { "type": "label", "name": "enthusiastic" },
+    { "type": "dialogue", "speaker": "Guide", "text": "You seem enthusiastic!" },
+    { "type": "relationship", "target": "Guide", "operation": "add", "value": 5 },
+    { "type": "jump", "label": "continue" },
+    { "type": "label", "name": "cautious" },
+    { "type": "dialogue", "speaker": "Guide", "text": "A cautious approach is wise." },
+    { "type": "relationship", "target": "Guide", "operation": "add", "value": 2 },
+    { "type": "jump", "label": "continue" },
+    { "type": "label", "name": "continue" },
+    {
+      "type": "camera",
+      "action": "shake",
+      "power": 5,
+      "speed": 5,
+      "duration": 30,
+      "wait": true
+    },
+    {
+      "type": "weather",
+      "action": "set",
+      "weatherType": "rain",
+      "power": 5,
+      "duration": 60,
+      "wait": true
+    },
+    {
+      "type": "moveRoute",
+      "eventId": -1,
+      "commands": [
+        { "code": "turnLeft" },
+        { "code": "stepForward" },
+        { "code": "turnRight" },
+        { "code": "stepForward" }
+      ],
+      "wait": true,
+      "timeoutFrames": 180
+    },
+    {
+      "type": "startQuest",
+      "questId": "side_quest_slimes"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Guide",
+      "text": "A new quest has been added to your journal. Good luck!",
+      "textSpeed": 1
+    },
+    {
+      "type": "weather",
+      "action": "clear",
+      "duration": 30,
+      "wait": true
+    },
+    {
+      "type": "audio",
+      "action": "stopBgm"
+    },
+    { "type": "unlockPlayer" }
+  ]
+}

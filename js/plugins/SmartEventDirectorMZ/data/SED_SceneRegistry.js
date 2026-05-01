@@ -3,6 +3,7 @@
 
   const SED = window.SED;
   const scenes = Object.create(null);
+  const _triggers = Object.create(null);
 
   function register(scene) {
     const id = String(scene.sceneId || "");
@@ -13,6 +14,11 @@
 
     if (scenes[id]) {
       throw new Error("Duplicate sceneId: " + id);
+    }
+
+    // v2.0: auto-convert linear scenes to graph format
+    if (SED.GraphConverter && SED.GraphConverter.normalizeScene) {
+      scene = SED.GraphConverter.normalizeScene(scene);
     }
 
     scenes[id] = scene;
@@ -30,6 +36,28 @@
     return Object.keys(scenes);
   }
 
+  function registerTriggers(sceneId, triggers) {
+    _triggers[String(sceneId)] = triggers;
+  }
+
+  function getTriggers(sceneId) {
+    return _triggers[String(sceneId)] || null;
+  }
+
+  function unregister(sceneId) {
+    delete scenes[String(sceneId)];
+  }
+
+  function reload(scene) {
+    const id = String(scene.sceneId || "");
+
+    if (id) {
+      unregister(id);
+    }
+
+    register(scene);
+  }
+
   function clear() {
     for (const key of Object.keys(scenes)) {
       delete scenes[key];
@@ -38,10 +66,15 @@
 
   SED.SceneRegistry = {
     register,
+    unregister,
+    reload,
     get,
     has,
     list,
-    clear
+    listIds: list,
+    clear,
+    registerTriggers,
+    getTriggers
   };
 
   SED.registerModule("SceneRegistry", "0.1.0");

@@ -16,7 +16,7 @@
       },
 
       start(step, context, runtime) {
-        const duration = Math.max(0, Number(step.duration || 30));
+        const duration = Math.max(0, Number(step.duration || SED.Constants.DEFAULT_EFFECT_DURATION));
         runtime.wait = step.wait !== false;
         runtime.endFrame = Graphics.frameCount + duration;
 

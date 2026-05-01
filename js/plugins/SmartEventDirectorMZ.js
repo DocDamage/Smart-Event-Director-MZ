@@ -1,6 +1,6 @@
 /*:
  * @target MZ
- * @plugindesc v0.2 Smart Event Director MZ - modular cutscene/story runner.
+ * @plugindesc v2.0 Smart Event Director MZ - modular cutscene/story runner.
  * @author Smart Event Director MZ
  *
  * @param Debug Mode
@@ -36,13 +36,81 @@
  * @type boolean
  * @default true
  *
+ * @param Enable Quest Log
+ * @type boolean
+ * @default true
+ * @desc Adds a Quest Log command to the main menu.
+ *
+ * @param Enable Relationship Viewer
+ * @type boolean
+ * @default false
+ * @desc Adds a Relationships command to the main menu.
+ *
+ * @param Enable Achievement Viewer
+ * @type boolean
+ * @default false
+ * @desc Adds an Achievements command to the main menu.
+ *
+ * @param Quest Toast Position
+ * @type string
+ * @default topRight
+ * @desc Toast position: topLeft, topRight, bottomLeft, bottomRight, center
+ *
+ * @param Quest Toast Duration
+ * @type number
+ * @default 180
+ * @desc Frames the toast stays visible (60fps)
+ *
+ * @param Quest Toast Animation
+ * @type string
+ * @default slide
+ * @desc Animation type: slide, fade, none
+ *
+ * @param Quest Toast Sound
+ * @type string
+ * @default
+ * @desc SE filename to play on toast (leave empty for none)
+ *
+ * @param Achievement Viewer Cancel Key
+ * @type string
+ * @default cancel
+ * @desc RPG Maker key name for closing the achievement viewer (cancel, escape, shift, control)
+ *
+ * @param Relationship Viewer Cancel Key
+ * @type string
+ * @default cancel
+ * @desc RPG Maker key name for closing the relationship viewer (cancel, escape, shift, control)
+ *
+ * @param Scene Skip Key Name
+ * @type string
+ * @default cancel
+ * @desc RPG Maker key name for skipping scenes (cancel, escape, shift, control)
+ *
+ * @param Dialogue Log Key Name
+ * @type string
+ * @default pageup
+ * @desc RPG Maker key name for toggling dialogue log (pageup, pagedown, shift)
+ *
+ * @param Enable Hot Reload
+ * @type boolean
+ * @default false
+ * @desc Allow reloading JSON data at runtime via ReloadData plugin command.
+ *
+ * @param Locale
+ * @type string
+ * @default en
+ * @desc Active locale for string tables (e.g., en, es, jp). Requires localeFiles in index.json.
+ *
+ * @param Custom Step Path
+ * @type string
+ * @default
+ * @desc Path to custom step handler index JSON (e.g., data/SmartEventDirector/custom_steps/index.json). Leave empty to disable.
+ *
  * @command PlayScene
  * @text Play Scene
- *
  * @arg sceneId
  * @type string
  * @text Scene ID
- *
  * @arg wait
  * @type boolean
  * @default true
@@ -59,8 +127,115 @@
  *
  * @command ToggleDebug
  * @text Toggle Debug Overlay
+ *
+ * @command SetRelationship
+ * @text Set Relationship Points
+ * @arg target
+ * @type string
+ * @text Target Character
+ * @arg value
+ * @type number
+ * @default 0
+ * @text Points
+ *
+ * @command AddRelationship
+ * @text Add Relationship Points
+ * @arg target
+ * @type string
+ * @text Target Character
+ * @arg value
+ * @type number
+ * @default 1
+ * @text Points to Add
+ *
+ * @command StartQuest
+ * @text Start Quest
+ * @arg questId
+ * @type string
+ * @text Quest ID
+ *
+ * @command CompleteQuest
+ * @text Complete Quest
+ * @arg questId
+ * @type string
+ * @text Quest ID
+ *
+ * @command FailQuest
+ * @text Fail Quest
+ * @arg questId
+ * @type string
+ * @text Quest ID
+ *
+ * @command UpdateObjective
+ * @text Update Objective
+ * @arg questId
+ * @type string
+ * @text Quest ID
+ * @arg objective
+ * @type string
+ * @text Objective Key
+ * @arg completed
+ * @type boolean
+ * @default true
+ * @text Completed
+ *
+ * @command OpenQuestLog
+ * @text Open Quest Log
+ *
+ * @command OpenRelationshipViewer
+ * @text Open Relationship Viewer
+ *
+ * @command UnlockAchievement
+ * @text Unlock Achievement
+ * @arg achievementId
+ * @type string
+ * @text Achievement ID
+ *
+ * @command OpenAchievementViewer
+ * @text Open Achievement Viewer
+ *
+ * @command RetryCheckpoint
+ * @text Retry Last Checkpoint
+ *
+ * @command RetryCheckpointId
+ * @text Retry Checkpoint by ID
+ * @arg id
+ * @type string
+ * @text Checkpoint ID
+ *
+ * @help
+ * ============================================================
+ * Smart Event Director MZ - v1.2.0
+ * ============================================================
+ * Modular cutscene/story runner via JSON scene files.
+ *
+ * Quick Setup:
+ *  1. Create data/SmartEventDirector/
+ *  2. Create index.json with schema SED_INDEX_1
+ *  3. Put scene/quest JSON files in subfolders
+ *
+ * Plugin Commands:
+ *  PlayScene, StopScene, SkipScene, RecoverScene, ToggleDebug
+ *  SetRelationship, AddRelationship, StartQuest, CompleteQuest
+ *  FailQuest, UpdateObjective, OpenQuestLog, OpenRelationshipViewer
+ *  UnlockAchievement, OpenAchievementViewer
+ *  RetryCheckpoint, RetryCheckpointId, ReloadData
+ *
+ * Step Types:
+ *  Core: dialogue, narration, choice, wait, switch, variable
+ *  Movement: moveOneTile, moveTo, moveRoute, lockPlayer, unlockPlayer
+ *  Flow: label, jump, loop, endLoop, condition, script, comment
+ *  Scene: callScene, return, checkpoint, preload
+ *  Visual: fade, fadeIn, fadeOut, picture, camera, weather, transition, titleCard
+ *  Audio: audio | Quest: startQuest, updateObjective, completeQuest, failQuest, questReward
+ *  Relationship: relationship | Achievement: unlockAchievement | System: commonEvent, selfSwitch
+ *
+ * Notes:
+ *  - Use \v[n], \n[n], \p[n] for variable/actor/party interpolation
+ *  - Use \t[key] for locale string resolution
+ *  - Scenes default to map context; set "context":"battle" for battle scenes
+ *  - See docs/ for full STEP_TYPES.md, CONDITIONS.md, and API_REFERENCE.md
  */
-
 (() => {
   "use strict";
 
@@ -78,6 +253,9 @@
     "core/SED_Params.js",
     "core/SED_Logger.js",
     "core/SED_Util.js",
+    "core/SED_Locale.js",
+    "core/SED_Constants.js",
+    "core/SED_ModuleLoader.js",
 
     "runtime/SED_StepRegistry.js",
 
@@ -85,16 +263,39 @@
     "data/SED_SceneValidator.js",
     "data/SED_DataLoader.js",
 
+    "runtime/SED_GraphConverter.js",
     "runtime/SED_StepQueue.js",
+    "runtime/SED_GraphQueue.js",
+    "runtime/SED_EventBus.js",
+    "runtime/SED_UpdateDispatcher.js",
+    "runtime/SED_PluginAPI.js",
+    "runtime/SED_CustomStepLoader.js",
     "runtime/SED_StepContext.js",
     "runtime/SED_Locks.js",
     "runtime/SED_Save.js",
+    "runtime/SED_Cleanup.js",
     "runtime/SED_Failsafe.js",
-
-    // v0.2: Debug overlay before runner
     "runtime/SED_DebugOverlay.js",
-
+    "runtime/SED_DialogueLog.js",
+    "runtime/SED_TextEffects.js",
+    "runtime/SED_SkipRead.js",
+    "runtime/SED_NVLMode.js",
+    "runtime/SED_ToastManager.js",
+    "runtime/SED_Rewind.js",
+    "runtime/SED_Tween.js",
+    "runtime/SED_Recorder.js",
+    "runtime/SED_ThemeManager.js",
+    "runtime/SED_ScreenEffects.js",
+    "runtime/SED_BustManager.js",
+    "runtime/SED_VoiceManager.js",
+    "runtime/SED_InputManager.js",
     "runtime/SED_Runner.js",
+    "runtime/SED_RunnerState.js",
+    "runtime/SED_RunnerScene.js",
+    "runtime/SED_RunnerStack.js",
+    "runtime/SED_RunnerTransfer.js",
+    "runtime/SED_Triggers.js",
+    "runtime/SED_Profiler.js",
 
     "steps/SED_Step_LabelJump.js",
     "steps/SED_Step_Wait.js",
@@ -102,16 +303,58 @@
     "steps/SED_Step_Choice.js",
     "steps/SED_Step_SwitchVariable.js",
     "steps/SED_Step_Fade.js",
+    "steps/SED_Step_Transition.js",
     "steps/SED_Step_Movement.js",
     "steps/SED_Step_Locks.js",
-
-    // v0.2 steps
     "steps/SED_Step_CommonEvent.js",
     "steps/SED_Step_Condition.js",
     "steps/SED_Step_SelfSwitch.js",
     "steps/SED_Step_Audio.js",
     "steps/SED_Step_Picture.js",
-    "steps/SED_Step_Camera.js"
+    "steps/SED_Step_Camera.js",
+    "steps/SED_Step_Timeline.js",
+    "steps/SED_Step_Weather.js",
+    "steps/SED_Step_Bust.js",
+    "steps/SED_Step_QTE.js",
+
+    "data/SED_QuestRegistry.js",
+    "runtime/SED_QuestState.js",
+    "runtime/SED_RelationshipState.js",
+    "runtime/SED_RelationshipViewer.js",
+    "steps/SED_Step_Quest.js",
+    "steps/SED_Step_Relationship.js",
+    "runtime/SED_QuestToast.js",
+    "runtime/SED_QuestTracker.js",
+    "runtime/SED_Window_QuestCategory.js",
+    "runtime/SED_Window_QuestList.js",
+    "runtime/SED_Window_QuestDetail.js",
+    "runtime/SED_Scene_QuestLog.js",
+    "runtime/SED_QuestLog.js",
+
+    "data/SED_AchievementRegistry.js",
+    "runtime/SED_AchievementState.js",
+    "runtime/SED_AchievementToast.js",
+    "runtime/SED_AchievementViewer.js",
+    "steps/SED_Step_Achievement.js",
+
+    "steps/SED_Step_Script.js",
+    "steps/SED_Step_Comment.js",
+    "steps/SED_Step_Loop.js",
+    "steps/SED_Step_MoveRoute.js",
+    "steps/SED_Step_TitleCard.js",
+
+    "runtime/SED_HotReload.js",
+    "runtime/SED_AssetLoader.js",
+    "runtime/SED_Checkpoint.js",
+    "runtime/SED_History.js",
+    "runtime/SED_BattleIntegration.js",
+    "runtime/SED_SceneLayer.js",
+    "runtime/SED_PluginCommands.js",
+
+    "steps/SED_Step_CallScene.js",
+    "steps/SED_Step_Return.js",
+    "steps/SED_Step_Preload.js",
+    "steps/SED_Step_Checkpoint.js"
   ];
 
   function moduleBasePath() {
@@ -139,11 +382,28 @@
         await SED.DataLoader.loadAll();
       }
 
+      if (SED.CustomStepLoader && SED.CustomStepLoader.load) {
+        await SED.CustomStepLoader.load();
+      }
+
+      if (SED.SceneRegistry && SED.Triggers) {
+        for (const sceneId of SED.SceneRegistry.listIds()) {
+          const scene = SED.SceneRegistry.get(sceneId);
+          if (scene && scene.triggers) {
+            SED.Triggers.register(sceneId, scene.triggers);
+          }
+        }
+      }
+
+      if (SED.Params && SED.Params.validate) {
+        SED.Params.validate();
+      }
+
       SED.ready = true;
       if (SED.Logger) SED.Logger.info("Smart Event Director ready.");
     } catch (error) {
       SED.bootError = error;
-      SED.ready = true; // Prevent permanent boot lock.
+      SED.ready = true;
       console.error(error);
     }
   }
@@ -156,48 +416,6 @@
     return baseReady && SED.ready;
   };
 
-  PluginManager.registerCommand(PLUGIN_NAME, "PlayScene", function(args) {
-    const sceneId = String(args.sceneId || "");
-    const wait = String(args.wait || "true") === "true";
-
-    if (!sceneId) {
-      console.error("SED PlayScene missing sceneId.");
-      return;
-    }
-
-    if (!SED.Runner) {
-      console.error("SED Runner is not loaded.");
-      return;
-    }
-
-    SED.Runner.play(sceneId, {
-      interpreter: this,
-      callerEventId: typeof this.eventId === "function" ? this.eventId() : 0
-    });
-
-    if (wait && this.setWaitMode) {
-      this.setWaitMode("sedScene");
-    }
-  });
-
-  PluginManager.registerCommand(PLUGIN_NAME, "StopScene", function() {
-    if (SED.Runner) SED.Runner.stop("pluginCommand");
-  });
-
-  // v0.2: Skip scene plugin command
-  PluginManager.registerCommand(PLUGIN_NAME, "SkipScene", function() {
-    if (SED.Runner) SED.Runner.skip();
-  });
-
-  PluginManager.registerCommand(PLUGIN_NAME, "RecoverScene", function() {
-    if (SED.Failsafe) SED.Failsafe.recover("pluginCommand");
-  });
-
-  // v0.2: Toggle debug overlay plugin command
-  PluginManager.registerCommand(PLUGIN_NAME, "ToggleDebug", function() {
-    if (SED.DebugOverlay) SED.DebugOverlay.toggle();
-  });
-
   const _Game_Interpreter_updateWaitMode = Game_Interpreter.prototype.updateWaitMode;
   Game_Interpreter.prototype.updateWaitMode = function() {
     if (this._waitMode === "sedScene") {
@@ -207,35 +425,21 @@
       this._waitMode = "";
       return false;
     }
-
     return _Game_Interpreter_updateWaitMode.apply(this, arguments);
   };
 
   const _Scene_Map_update = Scene_Map.prototype.update;
   Scene_Map.prototype.update = function() {
     _Scene_Map_update.apply(this, arguments);
-
-    if (SED.Runner && SED.Runner.update) {
-      SED.Runner.update();
-    }
-
-    // v0.2: Debug overlay update
-    if (SED.DebugOverlay && SED.DebugOverlay.update) {
-      SED.DebugOverlay.update();
-    }
+    if (SED.UpdateDispatcher) SED.UpdateDispatcher.update("map");
   };
 
-  // v0.2: Draw debug overlay after all other rendering
   const _Scene_Map_postUpdate = Scene_Map.prototype.postUpdate;
   Scene_Map.prototype.postUpdate = function() {
     _Scene_Map_postUpdate.apply(this, arguments);
-
-    if (SED.DebugOverlay && SED.DebugOverlay.draw) {
-      SED.DebugOverlay.draw();
-    }
+    if (SED.UpdateDispatcher) SED.UpdateDispatcher.draw("map");
   };
 
-  // v0.2: Scene skip key detection
   const _Scene_Map_updateScene = Scene_Map.prototype.updateScene;
   Scene_Map.prototype.updateScene = function() {
     _Scene_Map_updateScene.apply(this, arguments);
@@ -243,11 +447,10 @@
     if (!SED.Params || !SED.Params.enableSceneSkip) return;
     if (!SED.Runner || !SED.Runner.isBusy()) return;
     if (!SED.Runner._scene) return;
-
-    // Only skip if canSkip is not explicitly false
     if (SED.Runner._scene.canSkip === false) return;
 
-    if (Input.isTriggered("escape") || Input.isTriggered("cancel")) {
+    const skipKey = SED.Params && SED.Params.sceneSkipKeyName ? SED.Params.sceneSkipKeyName : "cancel";
+    if (Input.isTriggered(skipKey)) {
       SED.Runner.skip();
     }
   };

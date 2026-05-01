@@ -1,0 +1,27 @@
+{
+  "schema": "SED_SCENE_1",
+  "sceneId": "example_locale",
+  "title": "Localization Demo",
+  "canSkip": true,
+  "steps": [
+    { "type": "dialogue", "speaker": "Narrator", "text": "\\t[locale.demo.intro]" },
+    { "type": "dialogue", "speaker": "Guide", "text": "\\t[locale.demo.guide_speak]" },
+    {
+      "type": "choice",
+      "prompt": "\\t[locale.demo.choice_prompt]",
+      "options": [
+        { "text": "\\t[locale.demo.choice_yes]", "jump": "yes" },
+        { "text": "\\t[locale.demo.choice_no]", "jump": "no" }
+      ],
+      "cancel": "none"
+    },
+    { "type": "label", "name": "yes" },
+    { "type": "dialogue", "speaker": "Guide", "text": "\\t[locale.demo.response_yes]" },
+    { "type": "jump", "label": "end" },
+    { "type": "label", "name": "no" },
+    { "type": "dialogue", "speaker": "Guide", "text": "\\t[locale.demo.response_no]" },
+    { "type": "jump", "label": "end" },
+    { "type": "label", "name": "end" },
+    { "type": "dialogue", "speaker": "Narrator", "text": "\\t[locale.demo.outro]" }
+  ]
+}
